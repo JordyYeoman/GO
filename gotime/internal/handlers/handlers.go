@@ -5,11 +5,18 @@ import (
 	"net/http"
 
 	"github.com/CloudyKit/jet/v6"
+	"github.com/gorilla/websocket"
 )
 
 var views = jet.NewSet(
 	jet.NewOSFileSystemLoader("./html"),
 	jet.InDevelopmentMode(),
+)
+
+var upgradeConnection = websocket.Upgrader(
+	ReadBufferSize: 1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool { return true },
 )
 
 func Home(w http.ResponseWriter, r *http.Request) {
