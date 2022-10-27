@@ -1,11 +1,12 @@
 {
 	"folders": [
 		{
-			"path": "."
-		},
-		{
-			"path": "front-end"
+			"path": "broker-service"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"go.gocodeAutoBuild": true,
+		"go.autocompleteUnimportedPackages": true,
+		"go.inferGopath": true
+	}
 }

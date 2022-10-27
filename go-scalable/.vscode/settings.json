@@ -1,4 +1,8 @@
 {
     "go.autocompleteUnimportedPackages": true,
-    "go.gocodeAutoBuild": true
+    "go.gocodeAutoBuild": true,
+    "go.toolsManagement.autoUpdate": true,
+    "go.gopath": "",
+    "go.inferGopath": true,
+    "go.installDependenciesWhenBuilding": true
 }
