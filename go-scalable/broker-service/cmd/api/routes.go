@@ -1,13 +1,14 @@
-package api
+package main
 
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 )
 
-func routes() http.Handler {
+func (app *Config) routes() http.Handler {
 	// mux is the common name used when routing in go
 	// mux := chi.NewRouter
 	mux := chi.NewRouter()
@@ -25,5 +26,9 @@ func routes() http.Handler {
 		MaxAge:           300,
 	}))
 
-	// return
+	mux.Use(middleware.Heartbeat("/ping"))
+
+	mux.Post("/", app.Broker)
+
+	return mux
 }
