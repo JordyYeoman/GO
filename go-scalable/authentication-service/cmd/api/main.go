@@ -6,6 +6,7 @@ import (
 )
 
 const webPort = "80"
+var counts int64
 
 type Config struct {
 	DB     *sql.DB
@@ -28,5 +29,36 @@ func main() {
 	err := srv.ListenAndServe()
 	if err != nil {
 		log.Panic(err)
+	}
+}
+
+func openDB(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func connectToDB() *sql.DB {
+	dsn := osGetenv("DSN")
+
+	for {
+		connection, err := openDB(dsn)
+		if err != nil {
+			log.Println("Postgres not yet ready....")
+			counts++
+		} else {
+			log.Println("Connected to Postgres database!")
+			return connection
+		}
+
+		
 	}
 }
