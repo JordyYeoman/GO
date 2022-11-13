@@ -1,7 +1,9 @@
 package main
 
 import (
+	"authentication/data"
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +15,7 @@ import (
 )
 
 const webPort = "80"
+
 var counts int64
 
 type Config struct {
@@ -31,12 +34,12 @@ func main() {
 
 	// setup config
 	app := Config{
-		DB: conn,
+		DB:     conn,
 		Models: data.New(conn),
 	}
 
 	srv := &http.Server{
-		Addr: fmt.Sprintf(":%f", webPort)
+		Addr:    fmt.Sprintf(":%s", webPort),
 		Handler: app.routes(),
 	}
 
