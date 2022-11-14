@@ -1,23 +1,31 @@
 package main
 
-import "fmt"
+import (
+	"bufio"
+	"fmt"
+	"log"
+	"os"
+	"strings"
+)
 
-func zero(x int) {
-	x = 0
+var pl = fmt.Println
+
+func stripSpaces(str string) string {
+	str = strings.Replace(str, " ", "", -1)
+	str = strings.Replace(str, "\t", "", -1)
+	str = strings.Replace(str, "\n", "", -1)
+	return str
 }
-
-func pointerZero(varPtr *int) {
-	*varPtr = 0
-}
-
-// pointer is represented using a *
-//
 
 func main() {
-	x := 5
-	y := 10
-	zero(x)
-	pointerZero(&y) // value at that memory address
-	fmt.Println(y)
-	fmt.Println(x) // x is still 5
+	pl("Enter your favourite movie")
+	reader := bufio.NewReader(os.Stdin) // Similar to C++, take user input
+	movieName, err := reader.ReadString('\n')
+	// Remove whitespace/newlines etc from string
+	if err == nil {
+		movieName = stripSpaces(movieName)
+		pl("Hey ", movieName, "is my favourite movie also!")
+	} else {
+		log.Fatal(err)
+	}
 }
