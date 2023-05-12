@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"os"
 	"time"
 )
@@ -17,14 +18,13 @@ func runNTimes(n int) {
 const userInputPrompt = "and press enter when ready"
 
 func main() {
-	println("Say WHAT AGAIN MOTHERFKER")
-	println("I DARE YOU, I DOUBLE DARE YOU!")
-	// runNTimes(3)
-	println("What?!")
+	// Seed the random number generator
+	rand.Seed(time.Now().UnixNano())
 
-	firstNumber := 2
-	secondNumber := 7
-	subtraction := 3
+	// Passing 8 to rand.Int will give a rand number between 0 and 8
+	firstNumber := rand.Intn(8) + 2
+	secondNumber := rand.Intn(8) + 2
+	subtraction := rand.Intn(8) + 2
 	var answer int
 
 	// Take user input
@@ -37,17 +37,22 @@ func main() {
 	reader.ReadString('\n')
 
 	// Play game
-	fmt.Println("Multiply your number by ", firstNumber, userInputPrompt)
+	fmt.Println("Multiply your number by", firstNumber, userInputPrompt)
 	reader.ReadString('\n')
 
-	fmt.Println("Multiply the result by ", secondNumber, userInputPrompt)
+	fmt.Println("Multiply the result by", secondNumber, userInputPrompt)
 	reader.ReadString('\n')
 
-	fmt.Println("Divide the result by your original number ", userInputPrompt)
+	fmt.Println("Divide the result by your original number", userInputPrompt)
 	reader.ReadString('\n')
 	
-	fmt.Println("Now subtract  ", subtraction, userInputPrompt)
+	fmt.Println("Now subtract", subtraction, userInputPrompt)
 	reader.ReadString('\n')
 
 	// Return answer to user
+	answer = (firstNumber * secondNumber) - subtraction
+	println("Answer is...");
+	println("Drum roll please...")
+	runNTimes(2)
+	println(answer) 
 }
