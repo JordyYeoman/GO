@@ -16,4 +16,15 @@ func main() {
 	for key, value := range intMap {
 		fmt.Println(key, value)
 	}
+
+	// Delete item from map
+	// delete(intMap, "Four")
+
+	// Check for a value in a map
+	el, ok := intMap["Four"]
+	if ok {
+		fmt.Println(el, "is in map")
+	} else {
+		fmt.Println(el, "is NOT in map")
+	}
 }
