@@ -22,3 +22,5 @@ go.work
 
 # Ignore postgres db
 ./db-data
+*/vendor/*
+/vendor
