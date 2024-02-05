@@ -32,31 +32,8 @@ func main() {
 		log.Fatal(dbErr)
 	}
 
-	// Testing table creation
-	createProductTable(db)
-	// Testing product creation
-	product := Product{"Book", 12.33, true}
-	pk := insertProduct(db, product)
-	fmt.Printf("Price key: %v\n", pk)
-	// Testing a basic query
-	var name string
-	var price float64
-	var available bool
-	invalidRow := 999999
-
-	query := "SELECT name, price, available FROM product WHERE id = ?"
-	// queryErr := db.QueryRow(query, pk).Scan(&name, &price, &available)    // Valid query
-	queryErr := db.QueryRow(query, invalidRow).Scan(&name, &price, &available) // No rows to be found
-	if queryErr != nil {
-		if queryErr == sql.ErrNoRows {
-			log.Fatalf("No rows found for the id: %d", invalidRow) // Handle logic for no rows being found
-		}
-		fmt.Printf("Error: %e", queryErr)
-		log.Fatal(dbErr)
-	}
-	fmt.Printf("Name: %s\n", name)
-	fmt.Printf("Price: %f\n", price)
-	fmt.Printf("Name: %t\n", available)
+	// Working with SQL examples
+	handleSQLExampleQueries(db)
 
 	defer db.Close() // Defer means run this when the wrapping function terminates
 
