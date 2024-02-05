@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
+	_ "github.com/go-sql-driver/mysql" // Importing a package for side effects, no direct usages (interface for DB)
 	"github.com/joho/godotenv"
 )
 
@@ -18,6 +20,45 @@ func main() {
 	godotenv.Load()
 
 	port := os.Getenv("PORT")
+	db_url := os.Getenv("DB_URL")
+
+	fmt.Println("Connecting to DB:")
+	db, dbErr := sql.Open("mysql", db_url)
+	if dbErr != nil {
+		log.Fatal(dbErr)
+	}
+
+	if dbErr = db.Ping(); dbErr != nil {
+		log.Fatal(dbErr)
+	}
+
+	// Testing table creation
+	createProductTable(db)
+	// Testing product creation
+	product := Product{"Book", 12.33, true}
+	pk := insertProduct(db, product)
+	fmt.Printf("Price key: %v\n", pk)
+	// Testing a basic query
+	var name string
+	var price float64
+	var available bool
+	invalidRow := 999999
+
+	query := "SELECT name, price, available FROM product WHERE id = ?"
+	// queryErr := db.QueryRow(query, pk).Scan(&name, &price, &available)    // Valid query
+	queryErr := db.QueryRow(query, invalidRow).Scan(&name, &price, &available) // No rows to be found
+	if queryErr != nil {
+		if queryErr == sql.ErrNoRows {
+			log.Fatalf("No rows found for the id: %d", invalidRow) // Handle logic for no rows being found
+		}
+		fmt.Printf("Error: %e", queryErr)
+		log.Fatal(dbErr)
+	}
+	fmt.Printf("Name: %s\n", name)
+	fmt.Printf("Price: %f\n", price)
+	fmt.Printf("Name: %t\n", available)
+
+	defer db.Close() // Defer means run this when the wrapping function terminates
 
 	if port == "" {
 		log.Fatal("PORT is not found in the environment")
