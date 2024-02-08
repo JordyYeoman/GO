@@ -29,6 +29,8 @@ func api(url string) {
 	// close response body
 	response.Body.Close()
 
+	// Do something with the body response.
+
 	// print response body
 	fmt.Println(string(body))
 }
