@@ -26,10 +26,12 @@ func api(url string) {
 	if error != nil {
 		fmt.Println(error)
 	}
-	// close response body
-	response.Body.Close()
 
 	// Do something with the body response.
+	// response.Body.Read(p)
+
+	// close response body
+	response.Body.Close()
 
 	// print response body
 	fmt.Println(string(body))
