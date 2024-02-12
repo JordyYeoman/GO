@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -15,7 +16,7 @@ func handleApiCall() {
 }
 
 type Pokemon struct {
-	id int `json:"id"`
+	Id int `json:"id"` // Struct values need to be exported by having a capital I.
 }
 
 func api(url string) {
@@ -32,11 +33,19 @@ func api(url string) {
 		fmt.Println(error)
 	}
 
-	// response
+	var p Pokemon
+	// parse the json data
+	pErr := json.Unmarshal(body, &p)
+	if pErr != nil {
+		fmt.Println(pErr)
+		return
+	}
+
+	fmt.Println(p)
 
 	// close response body
 	response.Body.Close()
 
 	// print response body
-	fmt.Println(string(body))
+	// fmt.Println(string(body))
 }
