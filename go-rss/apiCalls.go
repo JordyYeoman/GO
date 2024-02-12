@@ -14,7 +14,12 @@ func handleApiCall() {
 	api(url)
 }
 
+type Pokemon struct {
+	id int `json:"id"`
+}
+
 func api(url string) {
+	fmt.Println(url)
 	response, err := http.Get(url)
 
 	if err != nil {
@@ -27,8 +32,7 @@ func api(url string) {
 		fmt.Println(error)
 	}
 
-	// Do something with the body response.
-	// response.Body.Read(p)
+	// response
 
 	// close response body
 	response.Body.Close()
