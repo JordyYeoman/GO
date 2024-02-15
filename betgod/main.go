@@ -36,25 +36,49 @@ func main() {
 	}(response.Body)
 
 	if response.StatusCode == http.StatusOK {
-		bodyBytes, err := io.ReadAll(response.Body)
+		// Second version
+		todoItem := Todo{}
+
+		decoder := json.NewDecoder(response.Body)
+		decoder.DisallowUnknownFields() // If you want to force a structure into responses from the API.
+
+		if err := decoder.Decode(&todoItem); err != nil {
+			log.Fatal("Decoder error: ", err)
+		}
+
+		fmt.Println("Decoder output")
+		fmt.Println(todoItem)
+
+		// convert Go Struct to JSON
+		todo, err := json.Marshal(todoItem)
 		if err != nil {
 			log.Fatal(err)
 		}
-		// Good way to just simply log out our response from the endpoint
-		//data :=  string(bodyByte)
-		//fmt.Println(data)
 
-		// Verbose way of unmarshalling data
-		// Create an element to place the response unmarshalled data to
-		todoItem := Todo{}
-
-		jErr := json.Unmarshal(bodyBytes, &todoItem)
-		if jErr != nil {
-			return
-		}
-
-		fmt.Printf(`Data from API: %+v`, todoItem)
+		fmt.Println(string(todo))
 	}
 
 	return
+}
+
+func firstWayToDestructureJSON(response *http.Response) {
+	// Fist way to implement JSON destructuring
+	bodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Good way to just simply log out our response from the endpoint
+	//data :=  string(bodyByte)
+	//fmt.Println(data)
+
+	// Verbose way of unmarshalling data
+	// Create an element to place the response unmarshalled data to
+	todoItem := Todo{}
+
+	jErr := json.Unmarshal(bodyBytes, &todoItem)
+	if jErr != nil {
+		return
+	}
+
+	fmt.Printf(`Data from API: %+v`, todoItem)
 }
