@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/gocolly/colly"
+	"github.com/google/uuid"
 	"log"
-	"strconv"
 	"strings"
 )
 
@@ -30,106 +30,35 @@ func main() {
 	//fmt.Println(aflSeasonsList)
 }
 
-func (s *GameStats) setQuarterScore(quarter, score int) {
-	switch quarter {
-	case 1:
-		s.QuarterOneScore += score
-	case 2:
-		s.QuarterTwoScore += score
-	case 3:
-		s.QuarterThreeScore += score
-	case 4:
-		s.QuarterFourScore += score
-	}
-}
-
-func extractGameStats(line, team string) GameStats {
-	var stats GameStats
-	stats.TeamName = team
-
-	fmt.Println(line)
-
-	parts := strings.Fields(line) // Split the line by spaces
-	fmt.Println(parts)
-
-	// Final Score
-	stats.FinalScore = GetFinalScore(parts[5])
-
-	// Match data
-	stats.MatchData =
-	// Quarters
-	for i := 1; i < 5; i++ {
-		score := parts[i]
-		scoreParts := strings.Split(score, ".")
-		if len(scoreParts) != 2 {
-			fmt.Println("Invalid score format:", score)
-			continue
-		}
-		score1, err1 := strconv.Atoi(scoreParts[0])
-		score2, err2 := strconv.Atoi(scoreParts[1])
-		if err1 != nil || err2 != nil {
-			fmt.Println("Error converting score to int:", score)
-			continue
-		}
-		quarter := i // Quarter 1 corresponds to index 1, Quarter 2 to index 2, and so on
-		switch quarter {
-		case 1:
-			stats.QuarterOneData = score
-			stats.QuarterOneScore = score1*6 + score2
-		case 2:
-			stats.QuarterTwoData = score
-			stats.QuarterTwoScore = score1*6 + score2
-		case 3:
-			stats.QuarterThreeData = score
-			stats.QuarterThreeScore = score1*6 + score2
-		case 4:
-			stats.QuarterFourData = score
-			stats.QuarterFourScore = score1*6 + score2
-		}
-	}
-	//
-	//fmt.Println("Matches: ")
-	//fmt.Println(matches)
-	//
-	//if len(matches) > 0 {
-	//	for i, match := range matches[0][1:] {
-	//		score, err := strconv.Atoi(match)
-	//		if err != nil {
-	//			fmt.Println("Error converting score to int:", err)
-	//			continue
-	//		}
-	//		quarter := (i / 2) + 1
-	//		if i%2 == 0 {
-	//			stats.setQuarterScore(quarter, score)
-	//		}
-	//	}
-	//}
-
-	return stats
-}
-
 func handleStringMagic() {
+	// Struct to contain full match data
+	var MatchResult = MatchStats{}
+	teamOneSet := false
 	testStr := "Richmond  1.4   2.4   7.8  8.10  58Thu 16-Mar-2023 7:20 PM (6:20 PM) Att: 88,084 Venue: M.C.G.\nCarlton  3.1   4.6   6.9  8.10  58Match drawn [Match stats]\n"
 
 	lines := strings.Split(testStr, "\n")
 
-	// Extract team name:
-	// 1. Separate into two variables by newline
-
-	// 2. Extract team names + create struct to store data
 	for _, line := range lines {
 		for team := range TeamNames {
 			if strings.Contains(line, team) {
-				fmt.Println("Found team:", team)
-				stats := extractGameStats(line, team)
-				fmt.Println("Game Stats:", stats)
+				stats := ExtractTeamStats(line, team)
+				// First team is away
+				if !teamOneSet {
+					MatchResult.TeamOne = stats
+					teamOneSet = true
+				}
+				// Second team is home
+				MatchResult.TeamTwo = stats
+
+				//fmt.Println("Game Stats:", stats)
 				break
 			}
 		}
 	}
-	// 3. Extract Quarter by quarter scores
-	// 4. Extract Match details
-	// 5. Extract result of match
+
+	MatchResult.MatchID = uuid.New().String()
+	fmt.Println(MatchResult)
+	// 3. Supplement data models with unique ids + Match Results
 }
 
 func getPageStats(url string) {
