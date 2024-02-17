@@ -19,5 +19,5 @@ type MatchStats struct {
 	MatchID     string
 	TeamOne     TeamStats
 	TeamTwo     TeamStats
-	MatchResult string
+	WinningTeam string
 }

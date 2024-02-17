@@ -93,6 +93,8 @@ func ExtractTeamStats(line, team string) TeamStats {
 	stats.TeamName = team
 	parts := strings.Fields(line) // Split the line by spaces
 
+	// TODO: Check for special team names that are not just 1 word eg - 'st kilda'
+
 	// Final Score
 	stats.FinalScore = GetFinalScore(parts[5])
 

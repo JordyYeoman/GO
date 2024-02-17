@@ -34,7 +34,8 @@ func handleStringMagic() {
 	// Struct to contain full match data
 	var MatchResult = MatchStats{}
 	teamOneSet := false
-	testStr := "Richmond  1.4   2.4   7.8  8.10  58Thu 16-Mar-2023 7:20 PM (6:20 PM) Att: 88,084 Venue: M.C.G.\nCarlton  3.1   4.6   6.9  8.10  58Match drawn [Match stats]\n"
+	//testStr := "Richmond  1.4   2.4   7.8  8.10  58Thu 16-Mar-2023 7:20 PM (6:20 PM) Att: 88,084 Venue: M.C.G.\nCarlton  3.1   4.6   6.9  8.10  58Match drawn [Match stats]\n"
+	testStr := "St Kilda  3.3   5.4   6.6  10.7  67Sun 19-Mar-2023 4:40 PM (3:40 PM) Att: 23,429 Venue: Docklands\nFremantle  2.1   5.4   7.6  7.10  52St Kilda won by 15 pts [Match stats]\n"
 
 	lines := strings.Split(testStr, "\n")
 
@@ -57,8 +58,25 @@ func handleStringMagic() {
 	}
 
 	MatchResult.MatchID = uuid.New().String()
+	// Find match winner
+	tempTeamOneOutcome := MatchResult.TeamOne.FinalScore
+	tempTeamTwoOutcome := MatchResult.TeamTwo.FinalScore
+
+	if tempTeamOneOutcome > tempTeamTwoOutcome {
+		MatchResult.TeamOne.MatchResult = "WIN"
+		MatchResult.TeamTwo.MatchResult = "LOSS"
+		MatchResult.WinningTeam = MatchResult.TeamOne.TeamName
+	} else if tempTeamTwoOutcome < tempTeamOneOutcome {
+		MatchResult.TeamOne.MatchResult = "LOSS"
+		MatchResult.TeamTwo.MatchResult = "WIN"
+		MatchResult.WinningTeam = MatchResult.TeamTwo.TeamName
+	} else {
+		// It's a draw
+		MatchResult.TeamOne.MatchResult = "DRAW"
+		MatchResult.TeamTwo.MatchResult = "DRAW"
+	}
+
 	fmt.Println(MatchResult)
-	// 3. Supplement data models with unique ids + Match Results
 }
 
 func getPageStats(url string) {
