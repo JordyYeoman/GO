@@ -9,42 +9,48 @@ import (
 	"strings"
 )
 
-// Notes
-// 1.For GoColly, you need to set up the listeners first then run your visit() command.
-// 2.
+type AFLSeasonList struct {
+	seasonLink string
+	seasonYear string
+}
 
 func main() {
 	fmt.Println("System Online and Ready Sir")
 
-	var aflSeasonList []string
+	var aflSeasonList []AFLSeasonList
 	totalSeasons := 30
 	lastSeason := 2023 // Season we want to start counting back from
+
 	for i := 0; i < totalSeasons; i++ {
+		var season AFLSeasonList
 		// Convert lastSeason - i to string
-		seasonStr := strconv.Itoa(lastSeason - i)
+		seasonYear := strconv.Itoa(lastSeason - i)
 
 		// Concatenate the URL parts into a slice of strings
-		urlParts := []string{"https://afltables.com/afl/seas/", seasonStr, ".html"}
+		urlParts := []string{"https://afltables.com/afl/seas/", seasonYear, ".html"}
 
 		// Join the URL parts with an empty separator
 		url := strings.Join(urlParts, "")
 
+		season.seasonLink = url
+		season.seasonYear = seasonYear
 		// Append the URL to aflSeasonList
-		aflSeasonList = append(aflSeasonList, url)
+		aflSeasonList = append(aflSeasonList, season)
 	}
 
-	// Test navigation to one page + scrape
-	//testUrl := "https://afltables.com/afl/seas/2023.html"
-	//getPageStats(testUrl)
+	//var pageData []MatchStats
+	// Loop over each page link and create dataset
+	//for data := range aflSeasonList {
+	//	pageData = append(pageData, getPageStats(data))
+	//}
 
-	// Test string mapping / interpolation
-	//handleStringMagic()
+	poo := getPageStats("https://afltables.com/afl/seas/2023.html")
+	fmt.Println(poo)
 
 	fmt.Println("Scraping finished")
-	//fmt.Println(aflSeasonsList)
 }
 
-func ExtractMatchStats(gameURL string) {
+func ExtractMatchStats(gameURL string) MatchStats {
 	// Struct to contain full match data
 	var MatchResult = MatchStats{}
 	teamOneSet := false
@@ -103,14 +109,16 @@ func ExtractMatchStats(gameURL string) {
 		MatchResult.TeamTwo.MatchResult = "DRAW"
 	}
 
-	fmt.Println(MatchResult)
+	return MatchResult
 }
 
-func getPageStats(url string) {
+func getPageStats(url string) []MatchStats {
 	fmt.Println("Scraping: ")
 	fmt.Println(url)
 	count := 1
 	endOfRelevantPage := false // Exiting before finals to ease scraping, can come back and add into data.
+
+	var sliceOMatchStats []MatchStats
 
 	c := colly.NewCollector()
 	c.OnHTML("table", func(e *colly.HTMLElement) {
@@ -125,20 +133,16 @@ func getPageStats(url string) {
 		// Ignore round number + we start at round 1.
 		if count%2 == 0 {
 			fmt.Println(e.Text)
+			sliceOMatchStats = append(sliceOMatchStats, ExtractMatchStats(e.Text))
 		}
 		count++
 	})
-
-	// Extract data
-	// 1. Get team name
-	// 2. Get quarter by quarter team scores
-	// 3. Get quarter by quarter leader
-	// 4. Game Result
-	// 5. Game details (string)
 
 	err := c.Visit(url)
 	if err != nil {
 		log.Printf("Error occured bra: %+v", err)
 		log.Fatal(err)
 	}
+
+	return sliceOMatchStats
 }
