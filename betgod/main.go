@@ -42,7 +42,12 @@ func handleStringMagic() {
 	for _, line := range lines {
 		for team := range TeamNames {
 			if strings.Contains(line, team) {
-				stats := ExtractTeamStats(line, team)
+				fmt.Println()
+				fmt.Printf("Found Team: %+v", team)
+				fmt.Println()
+				// Slice team name from string
+				adjustedLine := RemoveTeamName(line, team)
+				stats := ExtractTeamStats(adjustedLine, team)
 				// First team is away
 				if !teamOneSet {
 					MatchResult.TeamOne = stats
@@ -51,7 +56,6 @@ func handleStringMagic() {
 				// Second team is home
 				MatchResult.TeamTwo = stats
 
-				//fmt.Println("Game Stats:", stats)
 				break
 			}
 		}

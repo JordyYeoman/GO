@@ -88,21 +88,26 @@ func (s *TeamStats) SetQuarterScore(quarter, score int) {
 	}
 }
 
+func RemoveTeamName(line, team string) string {
+	return strings.TrimPrefix(line, team)
+}
+
 func ExtractTeamStats(line, team string) TeamStats {
 	var stats TeamStats
 	stats.TeamName = team
 	parts := strings.Fields(line) // Split the line by spaces
+	endOfTeamScoresInStringSplit := 4
 
 	// TODO: Check for special team names that are not just 1 word eg - 'st kilda'
 
 	// Final Score
-	stats.FinalScore = GetFinalScore(parts[5])
+	stats.FinalScore = GetFinalScore(parts[endOfTeamScoresInStringSplit])
 
 	// Match data
 	stats.MatchData = GetMatchData(parts)
 
 	// Quarters
-	for i := 1; i < 5; i++ {
+	for i := 1; i < endOfTeamScoresInStringSplit; i++ {
 		score := parts[i]
 		scoreParts := strings.Split(score, ".")
 		if len(scoreParts) != 2 {
