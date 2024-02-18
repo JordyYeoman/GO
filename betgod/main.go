@@ -5,6 +5,7 @@ import (
 	"github.com/gocolly/colly"
 	"github.com/google/uuid"
 	"log"
+	"strconv"
 	"strings"
 )
 
@@ -15,33 +16,55 @@ import (
 func main() {
 	fmt.Println("System Online and Ready Sir")
 
-	//baseUrl := "https://afltables.com/afl/seas/"
-	// afl links to each season
-	//aflSeasonsList := getPageLinks(baseUrl)
+	var aflSeasonList []string
+	totalSeasons := 30
+	lastSeason := 2023 // Season we want to start counting back from
+	for i := 0; i < totalSeasons; i++ {
+		// Convert lastSeason - i to string
+		seasonStr := strconv.Itoa(lastSeason - i)
+
+		// Concatenate the URL parts into a slice of strings
+		urlParts := []string{"https://afltables.com/afl/seas/", seasonStr, ".html"}
+
+		// Join the URL parts with an empty separator
+		url := strings.Join(urlParts, "")
+
+		// Append the URL to aflSeasonList
+		aflSeasonList = append(aflSeasonList, url)
+	}
 
 	// Test navigation to one page + scrape
 	//testUrl := "https://afltables.com/afl/seas/2023.html"
 	//getPageStats(testUrl)
 
 	// Test string mapping / interpolation
-	handleStringMagic()
+	//handleStringMagic()
 
 	fmt.Println("Scraping finished")
 	//fmt.Println(aflSeasonsList)
 }
 
-func handleStringMagic() {
+func ExtractMatchStats(gameURL string) {
 	// Struct to contain full match data
 	var MatchResult = MatchStats{}
 	teamOneSet := false
-	//testStr := "Richmond  1.4   2.4   7.8  8.10  58Thu 16-Mar-2023 7:20 PM (6:20 PM) Att: 88,084 Venue: M.C.G.\nCarlton  3.1   4.6   6.9  8.10  58Match drawn [Match stats]\n"
-	testStr := "St Kilda  3.3   5.4   6.6  10.7  67Sun 19-Mar-2023 4:40 PM (3:40 PM) Att: 23,429 Venue: Docklands\nFremantle  2.1   5.4   7.6  7.10  52St Kilda won by 15 pts [Match stats]\n"
 
-	lines := strings.Split(testStr, "\n")
+	lines := strings.Split(gameURL, "\n")
 
 	for _, line := range lines {
 		for team := range TeamNames {
-			if strings.Contains(line, team) {
+			// Temp string so we don't include the final match summary and accidentally include a team twice.
+			tempLine := strings.Fields(line)
+			var tempString string
+			// Check if there are at least 5 elements in tempLine to avoid out of bounds error
+			if len(tempLine) < 5 {
+				// Handle error if required AND/OR Continue to the next iteration
+				continue
+			}
+			// Join the first 5 elements of tempLine with a space separator
+			tempString = strings.Join(tempLine[:5], " ")
+
+			if strings.Contains(tempString, team) {
 				fmt.Println()
 				fmt.Printf("Found Team: %+v", team)
 				fmt.Println()
@@ -70,7 +93,7 @@ func handleStringMagic() {
 		MatchResult.TeamOne.MatchResult = "WIN"
 		MatchResult.TeamTwo.MatchResult = "LOSS"
 		MatchResult.WinningTeam = MatchResult.TeamOne.TeamName
-	} else if tempTeamTwoOutcome < tempTeamOneOutcome {
+	} else if tempTeamOneOutcome < tempTeamTwoOutcome {
 		MatchResult.TeamOne.MatchResult = "LOSS"
 		MatchResult.TeamTwo.MatchResult = "WIN"
 		MatchResult.WinningTeam = MatchResult.TeamTwo.TeamName
@@ -87,13 +110,17 @@ func getPageStats(url string) {
 	fmt.Println("Scraping: ")
 	fmt.Println(url)
 	count := 1
+	endOfRelevantPage := false // Exiting before finals to ease scraping, can come back and add into data.
 
 	c := colly.NewCollector()
 	c.OnHTML("table", func(e *colly.HTMLElement) {
-		if count == 3 {
+		if endOfRelevantPage {
 			return
 		}
 
+		//if strings.Contains(e.Text, "Ladder") {
+		//	endOfRelevantPage = true
+		//}
 		// Every 2nd table on the page has the data we require
 		// Ignore round number + we start at round 1.
 		if count%2 == 0 {
@@ -114,37 +141,4 @@ func getPageStats(url string) {
 		log.Printf("Error occured bra: %+v", err)
 		log.Fatal(err)
 	}
-}
-
-func getPageLinks(rootURL string) []string {
-	// Scrape AFL season data
-	c := colly.NewCollector()
-	var aflSeasonsList []string
-	// We only want the last 25 seasons (for now)
-	// Because the season data starts back in 1897 through to 2023
-	linkCount := 0
-	totalGames := 126
-	totalGamesToScrap := 25
-
-	c.OnHTML("a", func(e *colly.HTMLElement) {
-		if linkCount < (totalGames - totalGamesToScrap) {
-			linkCount++
-			return
-		}
-		// Returning all <a> tag links on page
-		aflSeasonsList = append(aflSeasonsList, fmt.Sprintf("%s%s", rootURL, e.Attr("href")))
-	})
-
-	c.OnScraped(func(r *colly.Response) {
-		fmt.Println(r.Request.URL, " scraped!")
-	})
-
-	// Root site, used to find URL addresses for all seasons
-	err := c.Visit(fmt.Sprintf("%s%s", rootURL, "season_idx.html"))
-	if err != nil {
-		log.Printf("Error occured bra: %+v", err)
-		log.Fatal(err)
-	}
-
-	return aflSeasonsList
 }

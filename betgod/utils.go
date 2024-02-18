@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/gocolly/colly"
+	"log"
 	"strconv"
 	"strings"
 	"unicode"
@@ -98,6 +100,7 @@ func ExtractTeamStats(line, team string) TeamStats {
 	parts := strings.Fields(line) // Split the line by spaces
 	endOfTeamScoresInStringSplit := 4
 
+	fmt.Printf("parts: %+v", parts)
 	// TODO: Check for special team names that are not just 1 word eg - 'st kilda'
 
 	// Final Score
@@ -107,7 +110,7 @@ func ExtractTeamStats(line, team string) TeamStats {
 	stats.MatchData = GetMatchData(parts)
 
 	// Quarters
-	for i := 1; i < endOfTeamScoresInStringSplit; i++ {
+	for i := 0; i < endOfTeamScoresInStringSplit; i++ {
 		score := parts[i]
 		scoreParts := strings.Split(score, ".")
 		if len(scoreParts) != 2 {
@@ -120,7 +123,7 @@ func ExtractTeamStats(line, team string) TeamStats {
 			fmt.Println("Error converting score to int:", score)
 			continue
 		}
-		quarter := i // Quarter 1 corresponds to index 1, Quarter 2 to index 2, and so on
+		quarter := i + 1 // Quarter 1 corresponds to index 1, Quarter 2 to index 2, and so on
 		switch quarter {
 		case 1:
 			stats.QuarterOneData = score
@@ -138,4 +141,38 @@ func ExtractTeamStats(line, team string) TeamStats {
 	}
 
 	return stats
+}
+
+// Used to extract page links from the root page.
+func getPageLinks(rootURL string) []string {
+	// Scrape AFL season data
+	c := colly.NewCollector()
+	var aflSeasonsList []string
+	// We only want the last 25 seasons (for now)
+	// Because the season data starts back in 1897 through to 2023
+	linkCount := 0
+	totalGames := 126
+	totalGamesToScrap := 25
+
+	c.OnHTML("a", func(e *colly.HTMLElement) {
+		if linkCount < (totalGames - totalGamesToScrap) {
+			linkCount++
+			return
+		}
+		// Returning all <a> tag links on page
+		aflSeasonsList = append(aflSeasonsList, fmt.Sprintf("%s%s", rootURL, e.Attr("href")))
+	})
+
+	c.OnScraped(func(r *colly.Response) {
+		fmt.Println(r.Request.URL, " scraped!")
+	})
+
+	// Root site, used to find URL addresses for all seasons
+	err := c.Visit(fmt.Sprintf("%s%s", rootURL, "season_idx.html"))
+	if err != nil {
+		log.Printf("Error occured bra: %+v", err)
+		log.Fatal(err)
+	}
+
+	return aflSeasonsList
 }
