@@ -38,16 +38,14 @@ func main() {
 		aflSeasonList = append(aflSeasonList, season)
 	}
 
-	//var pageData []MatchStats
-	// Loop over each page link and create dataset
-	//for data := range aflSeasonList {
-	//	pageData = append(pageData, getPageStats(data))
-	//}
+	var pageData [][]MatchStats
+	//Loop over each page link and create dataset
+	for _, season := range aflSeasonList {
+		p := getPageStats(season.seasonLink, season.seasonYear)
+		pageData = append(pageData, p)
+	}
 
-	p := getPageStats("https://afltables.com/afl/seas/2023.html", "2023")
-	fmt.Println()
-	fmt.Println(p)
-	fmt.Println()
+	// Season stats
 
 	//testStr := "Port Adelaide  4.1   5.6   8.7  9.16  70Sat 16-Sep-2023 7:10 PM (7:40 PM) Att: 45,520 Venue: Adelaide Oval\nGreater Western Sydney  4.4  9.11 11.15 13.15  93Greater Western Sydney won by 23 pts [Match stats]\n"
 	//r := ExtractMatchStats(testStr)
@@ -78,7 +76,7 @@ func ExtractMatchStats(gameURL string) MatchStats {
 		teamToUse := FindCorrectTeamName(tempStrC)
 
 		if teamToUse != "" {
-			fmt.Println("Found team:", teamToUse)
+			//fmt.Println("Found team:", teamToUse)
 
 			// Slice team name from string
 			adjustedLine := RemoveTeamName(line, teamToUse)
@@ -126,13 +124,17 @@ func ExtractMatchStats(gameURL string) MatchStats {
 		MatchResult.TeamTwo.MatchResult = "DRAW"
 	}
 
+	// If no team, return nothing
+	if MatchResult.TeamTwo.TeamName == "" {
+		return MatchStats{}
+	}
+
 	return MatchResult
 }
 
 func getPageStats(url string, year string) []MatchStats {
 	fmt.Println("Scraping: ")
 	fmt.Println(url)
-	count := 1
 	endOfRelevantPage := false // Exiting before finals to ease scraping, can come back and add into data.
 
 	var sliceOMatchStats []MatchStats
@@ -155,11 +157,12 @@ func getPageStats(url string, year string) []MatchStats {
 
 		// Every 2nd table on the page has the data we require
 		// Ignore round number + we start at round 1.
-		if count%2 == 0 {
-			//fmt.Println(e.Text)
-			sliceOMatchStats = append(sliceOMatchStats, ExtractMatchStats(e.Text))
+		//fmt.Println(e.Text)
+		matchStats := ExtractMatchStats(e.Text)
+		// Only add match stats if team names exist
+		if matchStats.TeamOne.TeamName != "" {
+			sliceOMatchStats = append(sliceOMatchStats, matchStats)
 		}
-		count++
 	})
 
 	err := c.Visit(url)
