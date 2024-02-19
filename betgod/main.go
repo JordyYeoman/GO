@@ -71,11 +71,6 @@ func ExtractMatchStats(gameURL string) MatchStats {
 		}
 
 		tempStrC := strings.Join(tempLine[:5], " ")
-
-		//fmt.Println()
-		//fmt.Printf("Temp String: %+v", tempStrC)
-		//fmt.Println()
-
 		// Find which team to use
 		teamToUse := FindCorrectTeamName(tempStrC)
 
@@ -101,6 +96,7 @@ func ExtractMatchStats(gameURL string) MatchStats {
 	// Find match winner
 	tempTeamOneOutcome := MatchResult.TeamOne.FinalScore
 	tempTeamTwoOutcome := MatchResult.TeamTwo.FinalScore
+	// Set Quarter Results for each team (Needed when doing large single team analysis)
 
 	if tempTeamOneOutcome > tempTeamTwoOutcome {
 		MatchResult.TeamOne.MatchResult = "WIN"

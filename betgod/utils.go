@@ -47,10 +47,10 @@ func GetMatchData(sliceOfStrings []string) string {
 	var tempStr string
 	// Part 5 is int + day, we just want the day
 	for i, item := range sliceOfStrings {
-		if i == 5 {
+		if i == 4 {
 			tempStr += StripDigitsFromString(item)
 		}
-		if i > 5 {
+		if i > 4 {
 			tempStr += " "
 			tempStr += item
 		}
@@ -99,9 +99,6 @@ func ExtractTeamStats(line, team string) TeamStats {
 	stats.TeamName = team
 	parts := strings.Fields(line) // Split the line by spaces
 	endOfTeamScoresInStringSplit := 4
-
-	//fmt.Printf("parts: %+v", parts)
-	// TODO: Check for special team names that are not just 1 word eg - 'st kilda'
 
 	// Final Score
 	stats.FinalScore = GetFinalScore(parts[endOfTeamScoresInStringSplit])

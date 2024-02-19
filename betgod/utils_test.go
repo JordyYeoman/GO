@@ -13,6 +13,8 @@ func TestFindCorrectTeamName(t *testing.T) {
 	}
 }
 
+// {Greater Western Sydney 3  0.3 28  4.4 45 6.9  57 8.9  LOSS Collingwood won by 1 pt [Match stats] 57}
+
 func TestExtractMatchStats(t *testing.T) {
 	// Test case 1: Valid game URL
 	testHtmlText := "Collingwood  2.2   2.6   7.7  8.10  58Fri 22-Sep-2023 7:50 PM Att: 97,665 Venue: M.C.G.\nGreater Western Sydney  0.3   4.4   6.9   8.9  57Collingwood won by 1 pt [Match stats]"
@@ -29,18 +31,18 @@ func TestExtractMatchStats(t *testing.T) {
 			QuarterFourScore:  58,
 			QuarterFourData:   "8.10",
 			MatchResult:       "WIN",
-			MatchData:         "-Sep- 7:50 PM Att: 97,665 Venue: M.C.G.",
+			MatchData:         "Fri 22-Sep-2023 7:50 PM Att: 97,665 Venue: M.C.G.",
 			FinalScore:        58,
 		},
 		TeamTwo: TeamStats{
 			TeamName:          "Greater Western Sydney",
 			QuarterOneScore:   3,
 			QuarterOneData:    "0.3",
-			QuarterTwoScore:   18,
-			QuarterTwoData:    "2.6",
-			QuarterThreeScore: 18,
-			QuarterThreeData:  "2.6",
-			QuarterFourScore:  18,
+			QuarterTwoScore:   28,
+			QuarterTwoData:    "4.4",
+			QuarterThreeScore: 45,
+			QuarterThreeData:  "6.9",
+			QuarterFourScore:  57,
 			QuarterFourData:   "8.9",
 			MatchResult:       "LOSS",
 			MatchData:         "Collingwood won by 1 pt [Match stats]",
