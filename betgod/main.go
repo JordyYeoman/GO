@@ -17,6 +17,7 @@ type AFLSeasonList struct {
 func main() {
 	fmt.Println("System Online and Ready Sir")
 
+	// Generate season data
 	var aflSeasonList []AFLSeasonList
 	totalSeasons := 30
 	lastSeason := 2023 // Season we want to start counting back from
@@ -38,6 +39,7 @@ func main() {
 		aflSeasonList = append(aflSeasonList, season)
 	}
 
+	// Create large slice of slices of matches
 	var pageData [][]MatchStats
 	//Loop over each page link and create dataset
 	for _, season := range aflSeasonList {
@@ -45,15 +47,8 @@ func main() {
 		pageData = append(pageData, p)
 	}
 
-	// Season stats
+	// Connect to DB
 
-	//testStr := "Port Adelaide  4.1   5.6   8.7  9.16  70Sat 16-Sep-2023 7:10 PM (7:40 PM) Att: 45,520 Venue: Adelaide Oval\nGreater Western Sydney  4.4  9.11 11.15 13.15  93Greater Western Sydney won by 23 pts [Match stats]\n"
-	//r := ExtractMatchStats(testStr)
-	//fmt.Println()
-	//fmt.Printf("Match Stats: %+v\n", r)
-	//fmt.Println()
-	//
-	//fmt.Println("Scraping finished")
 }
 
 func ExtractMatchStats(gameURL string) MatchStats {

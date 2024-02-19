@@ -1,15 +1,18 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	"github.com/gocolly/colly"
+	_ "github.com/go-sql-driver/mysql" // Importing a package for side effects, no direct usages (interface for DB)
+	"github.com/joho/godotenv"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"unicode"
 )
 
-// Remember to use uppercase declaration if you want to export
+// TeamNames Remember to use uppercase declaration if you want to export
 var TeamNames = map[string]bool{
 	"Richmond":               true,
 	"Carlton":                true,
@@ -59,6 +62,32 @@ func GetMatchData(sliceOfStrings []string) string {
 	return tempStr
 }
 
+func handleDBConnection() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dbUrl := os.Getenv("DB_URL")
+
+	fmt.Println("Connecting to DB:")
+	db, dbErr := sql.Open("mysql", dbUrl)
+	if dbErr != nil {
+		log.Fatal(dbErr)
+	}
+
+	if dbErr = db.Ping(); dbErr != nil {
+		log.Fatal(dbErr)
+	}
+
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(db) // Defer means run this when the wrapping function terminates
+}
+
 func GetFinalScore(str string) int {
 	var tempScore string
 	for _, char := range str {
@@ -91,13 +120,13 @@ func (s *TeamStats) SetQuarterScore(quarter, score int) {
 }
 
 func updateQuarterResult(teamOne, teamTwo *TeamStats) {
-	updateQuarter(teamOne, teamTwo, &teamOne.QuarterOneResult, &teamTwo.QuarterOneResult, teamOne.QuarterOneScore, teamTwo.QuarterOneScore)
-	updateQuarter(teamOne, teamTwo, &teamOne.QuarterTwoResult, &teamTwo.QuarterTwoResult, teamOne.QuarterTwoScore, teamTwo.QuarterTwoScore)
-	updateQuarter(teamOne, teamTwo, &teamOne.QuarterThreeResult, &teamTwo.QuarterThreeResult, teamOne.QuarterThreeScore, teamTwo.QuarterThreeScore)
-	updateQuarter(teamOne, teamTwo, &teamOne.QuarterFourResult, &teamTwo.QuarterFourResult, teamOne.QuarterFourScore, teamTwo.QuarterFourScore)
+	updateQuarter(&teamOne.QuarterOneResult, &teamTwo.QuarterOneResult, teamOne.QuarterOneScore, teamTwo.QuarterOneScore)
+	updateQuarter(&teamOne.QuarterTwoResult, &teamTwo.QuarterTwoResult, teamOne.QuarterTwoScore, teamTwo.QuarterTwoScore)
+	updateQuarter(&teamOne.QuarterThreeResult, &teamTwo.QuarterThreeResult, teamOne.QuarterThreeScore, teamTwo.QuarterThreeScore)
+	updateQuarter(&teamOne.QuarterFourResult, &teamTwo.QuarterFourResult, teamOne.QuarterFourScore, teamTwo.QuarterFourScore)
 }
 
-func updateQuarter(teamOne, teamTwo *TeamStats, teamOneResult, teamTwoResult *string, teamOneScore, teamTwoScore int) {
+func updateQuarter(teamOneResult, teamTwoResult *string, teamOneScore, teamTwoScore int) {
 	if teamOneScore > teamTwoScore {
 		*teamOneResult = "WIN"
 		*teamTwoResult = "LOSS"
@@ -162,42 +191,6 @@ func ExtractTeamStats(line, team string) TeamStats {
 	//fmt.Println("==========")
 	return stats
 }
-
-// Used to extract page links from the root page.
-func getPageLinks(rootURL string) []string {
-	// Scrape AFL season data
-	c := colly.NewCollector()
-	var aflSeasonsList []string
-	// We only want the last 25 seasons (for now)
-	// Because the season data starts back in 1897 through to 2023
-	linkCount := 0
-	totalGames := 126
-	totalGamesToScrap := 25
-
-	c.OnHTML("a", func(e *colly.HTMLElement) {
-		if linkCount < (totalGames - totalGamesToScrap) {
-			linkCount++
-			return
-		}
-		// Returning all <a> tag links on page
-		aflSeasonsList = append(aflSeasonsList, fmt.Sprintf("%s%s", rootURL, e.Attr("href")))
-	})
-
-	c.OnScraped(func(r *colly.Response) {
-		fmt.Println(r.Request.URL, " scraped!")
-	})
-
-	// Root site, used to find URL addresses for all seasons
-	err := c.Visit(fmt.Sprintf("%s%s", rootURL, "season_idx.html"))
-	if err != nil {
-		log.Printf("Error occured bra: %+v", err)
-		log.Fatal(err)
-	}
-
-	return aflSeasonsList
-}
-
-// Validate ALL team words are in string
 
 func FindCorrectTeamName(str string) string {
 	// We need to check ALL team names to find best match in substring
