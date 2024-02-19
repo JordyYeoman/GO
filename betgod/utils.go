@@ -15,20 +15,20 @@ var TeamNames = map[string]bool{
 	"Carlton":                true,
 	"Geelong":                true,
 	"Collingwood":            true,
-	"North Melbourne":        true,
-	"West Coast":             true,
-	"Port Adelaide":          true,
-	"Brisbane Lions":         true,
 	"Melbourne":              true,
-	"Western Bulldogs":       true,
-	"Gold Coast":             true,
 	"Sydney":                 true,
-	"Greater Western Sydney": true,
 	"Adelaide":               true,
 	"Hawthorn":               true,
 	"Essendon":               true,
 	"St Kilda":               true,
 	"Fremantle":              true,
+	"Greater Western Sydney": true,
+	"Gold Coast":             true,
+	"Western Bulldogs":       true,
+	"West Coast":             true,
+	"Port Adelaide":          true,
+	"Brisbane Lions":         true,
+	"North Melbourne":        true,
 }
 
 func StripDigitsFromString(s string) string {
@@ -100,7 +100,7 @@ func ExtractTeamStats(line, team string) TeamStats {
 	parts := strings.Fields(line) // Split the line by spaces
 	endOfTeamScoresInStringSplit := 4
 
-	fmt.Printf("parts: %+v", parts)
+	//fmt.Printf("parts: %+v", parts)
 	// TODO: Check for special team names that are not just 1 word eg - 'st kilda'
 
 	// Final Score
@@ -140,6 +140,9 @@ func ExtractTeamStats(line, team string) TeamStats {
 		}
 	}
 
+	//fmt.Println("==========")
+	//fmt.Println(stats)
+	//fmt.Println("==========")
 	return stats
 }
 
@@ -175,4 +178,29 @@ func getPageLinks(rootURL string) []string {
 	}
 
 	return aflSeasonsList
+}
+
+// Validate ALL team words are in string
+
+func FindCorrectTeamName(str string) string {
+	// We need to check ALL team names to find best match in substring
+	var foundTeamNames []string
+	var correctTeamName = ""
+
+	// Find all matching team names
+	for team := range TeamNames {
+		if strings.Contains(str, team) {
+			foundTeamNames = append(foundTeamNames, team)
+		}
+	}
+
+	// If a longer team name exists in slice, use that instead.
+	// EG 'Sydney' and 'Greater Western Sydney', return the longer string
+	for _, t := range foundTeamNames {
+		if len(t) > len(correctTeamName) {
+			correctTeamName = t
+		}
+	}
+
+	return correctTeamName
 }
