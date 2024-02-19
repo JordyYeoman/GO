@@ -44,15 +44,18 @@ func main() {
 	//	pageData = append(pageData, getPageStats(data))
 	//}
 
-	// getPageStats("https://afltables.com/afl/seas/2023.html", "2023")
-
-	testStr := "Port Adelaide  4.1   5.6   8.7  9.16  70Sat 16-Sep-2023 7:10 PM (7:40 PM) Att: 45,520 Venue: Adelaide Oval\nGreater Western Sydney  4.4  9.11 11.15 13.15  93Greater Western Sydney won by 23 pts [Match stats]\n"
-	r := ExtractMatchStats(testStr)
+	p := getPageStats("https://afltables.com/afl/seas/2023.html", "2023")
 	fmt.Println()
-	fmt.Printf("Match Stats: %+v\n", r)
+	fmt.Println(p)
 	fmt.Println()
 
-	fmt.Println("Scraping finished")
+	//testStr := "Port Adelaide  4.1   5.6   8.7  9.16  70Sat 16-Sep-2023 7:10 PM (7:40 PM) Att: 45,520 Venue: Adelaide Oval\nGreater Western Sydney  4.4  9.11 11.15 13.15  93Greater Western Sydney won by 23 pts [Match stats]\n"
+	//r := ExtractMatchStats(testStr)
+	//fmt.Println()
+	//fmt.Printf("Match Stats: %+v\n", r)
+	//fmt.Println()
+	//
+	//fmt.Println("Scraping finished")
 }
 
 func ExtractMatchStats(gameURL string) MatchStats {
@@ -97,6 +100,17 @@ func ExtractMatchStats(gameURL string) MatchStats {
 	tempTeamOneOutcome := MatchResult.TeamOne.FinalScore
 	tempTeamTwoOutcome := MatchResult.TeamTwo.FinalScore
 	// Set Quarter Results for each team (Needed when doing large single team analysis)
+	if MatchResult.TeamOne.QuarterOneScore > MatchResult.TeamTwo.QuarterOneScore {
+		MatchResult.TeamOne.QuarterOneResult = "WIN"
+		MatchResult.TeamTwo.QuarterOneResult = "LOSS"
+	} else if MatchResult.TeamOne.QuarterOneScore < MatchResult.TeamTwo.QuarterOneScore {
+		MatchResult.TeamOne.QuarterOneResult = "LOSS"
+		MatchResult.TeamTwo.QuarterOneResult = "WIN"
+	} else {
+		MatchResult.TeamOne.QuarterOneResult = "DRAW"
+		MatchResult.TeamTwo.QuarterOneResult = "DRAW"
+	}
+	updateQuarterResult(&MatchResult.TeamOne, &MatchResult.TeamTwo)
 
 	if tempTeamOneOutcome > tempTeamTwoOutcome {
 		MatchResult.TeamOne.MatchResult = "WIN"

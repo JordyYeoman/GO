@@ -90,6 +90,26 @@ func (s *TeamStats) SetQuarterScore(quarter, score int) {
 	}
 }
 
+func updateQuarterResult(teamOne, teamTwo *TeamStats) {
+	updateQuarter(teamOne, teamTwo, &teamOne.QuarterOneResult, &teamTwo.QuarterOneResult, teamOne.QuarterOneScore, teamTwo.QuarterOneScore)
+	updateQuarter(teamOne, teamTwo, &teamOne.QuarterTwoResult, &teamTwo.QuarterTwoResult, teamOne.QuarterTwoScore, teamTwo.QuarterTwoScore)
+	updateQuarter(teamOne, teamTwo, &teamOne.QuarterThreeResult, &teamTwo.QuarterThreeResult, teamOne.QuarterThreeScore, teamTwo.QuarterThreeScore)
+	updateQuarter(teamOne, teamTwo, &teamOne.QuarterFourResult, &teamTwo.QuarterFourResult, teamOne.QuarterFourScore, teamTwo.QuarterFourScore)
+}
+
+func updateQuarter(teamOne, teamTwo *TeamStats, teamOneResult, teamTwoResult *string, teamOneScore, teamTwoScore int) {
+	if teamOneScore > teamTwoScore {
+		*teamOneResult = "WIN"
+		*teamTwoResult = "LOSS"
+	} else if teamOneScore < teamTwoScore {
+		*teamOneResult = "LOSS"
+		*teamTwoResult = "WIN"
+	} else {
+		*teamOneResult = "DRAW"
+		*teamTwoResult = "DRAW"
+	}
+}
+
 func RemoveTeamName(line, team string) string {
 	return strings.TrimPrefix(line, team)
 }
