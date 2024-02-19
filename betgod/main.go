@@ -5,7 +5,6 @@ import (
 	"github.com/gocolly/colly"
 	"github.com/google/uuid"
 	"log"
-	"strconv"
 	"strings"
 )
 
@@ -18,37 +17,37 @@ func main() {
 	fmt.Println("System Online and Ready Sir")
 
 	// Generate season data
-	var aflSeasonList []AFLSeasonList
-	totalSeasons := 30
-	lastSeason := 2023 // Season we want to start counting back from
-
-	for i := 0; i < totalSeasons; i++ {
-		var season AFLSeasonList
-		// Convert lastSeason - i to string
-		seasonYear := strconv.Itoa(lastSeason - i)
-
-		// Concatenate the URL parts into a slice of strings
-		urlParts := []string{"https://afltables.com/afl/seas/", seasonYear, ".html"}
-
-		// Join the URL parts with an empty separator
-		url := strings.Join(urlParts, "")
-
-		season.seasonLink = url
-		season.seasonYear = seasonYear
-		// Append the URL to aflSeasonList
-		aflSeasonList = append(aflSeasonList, season)
-	}
-
-	// Create large slice of slices of matches
-	var pageData [][]MatchStats
-	//Loop over each page link and create dataset
-	for _, season := range aflSeasonList {
-		p := getPageStats(season.seasonLink, season.seasonYear)
-		pageData = append(pageData, p)
-	}
+	//var aflSeasonList []AFLSeasonList
+	//totalSeasons := 30
+	//lastSeason := 2023 // Season we want to start counting back from
+	//
+	//for i := 0; i < totalSeasons; i++ {
+	//	var season AFLSeasonList
+	//	// Convert lastSeason - i to string
+	//	seasonYear := strconv.Itoa(lastSeason - i)
+	//
+	//	// Concatenate the URL parts into a slice of strings
+	//	urlParts := []string{"https://afltables.com/afl/seas/", seasonYear, ".html"}
+	//
+	//	// Join the URL parts with an empty separator
+	//	url := strings.Join(urlParts, "")
+	//
+	//	season.seasonLink = url
+	//	season.seasonYear = seasonYear
+	//	// Append the URL to aflSeasonList
+	//	aflSeasonList = append(aflSeasonList, season)
+	//}
+	//
+	//// Create large slice of slices of matches
+	//var pageData [][]MatchStats
+	////Loop over each page link and create dataset
+	//for _, season := range aflSeasonList {
+	//	p := getPageStats(season.seasonLink, season.seasonYear)
+	//	pageData = append(pageData, p)
+	//}
 
 	// Connect to DB
-
+	handleDBConnection()
 }
 
 func ExtractMatchStats(gameURL string) MatchStats {
