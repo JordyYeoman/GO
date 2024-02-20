@@ -46,6 +46,7 @@ func main() {
 	//	pageData = append(pageData, p)
 	//}
 
+	//fmt.Println(pageData)
 	// Connect to DB
 	handleDBConnection()
 }

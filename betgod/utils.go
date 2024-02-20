@@ -104,20 +104,37 @@ func createMatchStatsDBTables(db *sql.DB) {
 	}
 }
 
-func createTeamDBTables(db *sql.DB) {
-	// Use fmt.Sprintf to format the query string with the teamName variable
-	query := `CREATE TABLE IF NOT EXISTS team_north_melbourne (
-		match_id TEXT,
-		team_one VARCHAR(255),
-		team_two VARCHAR(255),
-		winning_team TEXT
-	)`
-
-	_, err := db.Exec(query)
+func insertMatchStats(db *sql.DB, matchStats MatchStats) int {
+	query := "INSERT INTO match_stats (match_id, team_one, team_two, winning_team) VALUES (?, ?, ?, ?);"
+	result, err := db.Exec(query, matchStats.MatchID, matchStats.TeamOne.TeamName, matchStats.TeamTwo.TeamName, matchStats.WinningTeam)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Retrieve the last inserted ID
+	pk, err := result.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return int(pk)
+}
+
+func insertTeamStats(db *sql.DB, matchStats MatchStats) int {
+	query := "INSERT INTO team_stats (team_name, quarter_one_score, quarter_one_result, quarter_one_data, quarter_two_score, quarter_two_result, quarter_two_data, quarter_three_score, quarter_three_data, quarter_three_result, quarter_four_score, quarter_four_data, quarter_four_result, match_result, match_data, final_score) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"
+	// TODO: Finish query
+	result, err := db.Exec(query, matchStats.MatchID, matchStats.TeamOne.TeamName, matchStats.TeamTwo.TeamName, matchStats.WinningTeam)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Retrieve the last inserted ID
+	pk, err := result.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return int(pk)
 }
 
 func handleDBConnection() {
@@ -140,12 +157,28 @@ func handleDBConnection() {
 
 	// Upload data per season
 	// 1. Create tables for matches + team stats
-	createMatchStatsDBTables(db)
-	createTeamStatsDBTables(db)
+	//createMatchStatsDBTables(db) // done
+	//createTeamStatsDBTables(db) // done
 	// 1.5 Create a table for each team name??
-	createTeamDBTables(db)
+	//createTeamDBTables(db) // done
 
-	// TODO:  3. Create table per team??
+	// Test works
+	//var tMatch = MatchStats{
+	//	MatchID: "slegjhw;ehjg",
+	//	TeamOne: TeamStats{
+	//		TeamName: "Full Send",
+	//	},
+	//	TeamTwo: TeamStats{
+	//		TeamName: "Nah bro",
+	//	},
+	//	WinningTeam: "FULL SEND",
+	//}
+	//insertMatchStats(db, tMatch) // test
+
+	// 2. Add Match Stats to DB table
+	// 3. Add Team Stats
+
+	// For each match, create the match stats and two teams stats entries
 
 	defer func(db *sql.DB) {
 		err := db.Close()
