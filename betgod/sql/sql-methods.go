@@ -48,3 +48,57 @@ func createMatchStatsDBTables(db *sql.DB) {
 		log.Fatal(err)
 	}
 }
+
+//func insertTeamStatsWithMatchId(db *sql.DB, seasons [][]MatchStats) {
+//	// For each match, create the match stats and two teams stats entries
+//	// Remember to add season number also...
+//	for _, matches := range seasons {
+//		for _, match := range matches {
+//			// Create a team entry for each team
+//			var teamOne = TeamStatsWithMatchId{
+//				MatchID:            match.MatchID,
+//				TeamName:           match.TeamOne.TeamName,
+//				QuarterOneScore:    match.TeamOne.QuarterOneScore,
+//				QuarterOneData:     match.TeamOne.QuarterOneData,
+//				QuarterOneResult:   match.TeamOne.QuarterOneResult,
+//				QuarterTwoScore:    match.TeamOne.QuarterTwoScore,
+//				QuarterTwoData:     match.TeamOne.QuarterTwoData,
+//				QuarterTwoResult:   match.TeamOne.QuarterTwoResult,
+//				QuarterThreeScore:  match.TeamOne.QuarterThreeScore,
+//				QuarterThreeData:   match.TeamOne.QuarterThreeData,
+//				QuarterThreeResult: match.TeamOne.QuarterThreeResult,
+//				QuarterFourScore:   match.TeamOne.QuarterFourScore,
+//				QuarterFourData:    match.TeamOne.QuarterFourData,
+//				QuarterFourResult:  match.TeamOne.QuarterFourResult,
+//				MatchResult:        match.TeamOne.MatchResult,
+//				MatchData:          match.TeamOne.MatchData,
+//				FinalScore:         match.TeamOne.FinalScore,
+//			}
+//
+//			var teamTwo = TeamStatsWithMatchId{
+//				MatchID:            match.MatchID,
+//				TeamName:           match.TeamTwo.TeamName,
+//				QuarterOneScore:    match.TeamTwo.QuarterOneScore,
+//				QuarterOneData:     match.TeamTwo.QuarterOneData,
+//				QuarterOneResult:   match.TeamTwo.QuarterOneResult,
+//				QuarterTwoScore:    match.TeamTwo.QuarterTwoScore,
+//				QuarterTwoData:     match.TeamTwo.QuarterTwoData,
+//				QuarterTwoResult:   match.TeamTwo.QuarterTwoResult,
+//				QuarterThreeScore:  match.TeamTwo.QuarterThreeScore,
+//				QuarterThreeData:   match.TeamTwo.QuarterThreeData,
+//				QuarterThreeResult: match.TeamTwo.QuarterThreeResult,
+//				QuarterFourScore:   match.TeamTwo.QuarterFourScore,
+//				QuarterFourData:    match.TeamTwo.QuarterFourData,
+//				QuarterFourResult:  match.TeamTwo.QuarterFourResult,
+//				MatchResult:        match.TeamTwo.MatchResult,
+//				MatchData:          match.TeamTwo.MatchData,
+//				FinalScore:         match.TeamTwo.FinalScore,
+//			}
+//			// Create separate team entries
+//			insertTeamStats(db, teamOne)
+//			insertTeamStats(db, teamTwo)
+//			// Create match entry
+//			insertMatchStats(db, match)
+//		}
+//	}
+//}
