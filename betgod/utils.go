@@ -62,51 +62,9 @@ func GetMatchData(sliceOfStrings []string) string {
 	return tempStr
 }
 
-func createTeamStatsDBTables(db *sql.DB) {
-	query := `CREATE TABLE IF NOT EXISTS team_stats (
-		id INT AUTO_INCREMENT PRIMARY KEY,
-    	team_name TEXT,
-		quarter_one_score BIGINT,
-		quarter_one_result TEXT,
-		quarter_one_data TEXT,
-		quarter_two_score BIGINT,
-		quarter_two_result TEXT,
-		quarter_two_data TEXT,
-		quarter_three_score BIGINT,
-		quarter_three_data TEXT,
-		quarter_three_result TEXT,
-		quarter_four_score BIGINT,
-		quarter_four_data TEXT,
-		quarter_four_result TEXT,
-		match_result TEXT,
-		match_data TEXT,
-		final_score BIGINT
-	);`
-
-	_, err := db.Exec(query) // Execute query against DB without returning any rows
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func createMatchStatsDBTables(db *sql.DB) {
-	query := `CREATE TABLE IF NOT EXISTS match_stats (
-		id INT AUTO_INCREMENT PRIMARY KEY,
-    	match_id TEXT,
-		team_one VARCHAR(255),
-		team_two VARCHAR(255),
-		winning_team TEXT
-	)`
-
-	_, err := db.Exec(query) // Execute query against DB without returning any rows
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func insertMatchStats(db *sql.DB, matchStats MatchStats) int {
-	query := "INSERT INTO match_stats (match_id, team_one, team_two, winning_team) VALUES (?, ?, ?, ?);"
-	result, err := db.Exec(query, matchStats.MatchID, matchStats.TeamOne.TeamName, matchStats.TeamTwo.TeamName, matchStats.WinningTeam)
+	query := "INSERT INTO match_stats (match_id, team_one, team_two, winning_team, season) VALUES (?, ?, ?, ?, ?);"
+	result, err := db.Exec(query, matchStats.MatchID, matchStats.TeamOne.TeamName, matchStats.TeamTwo.TeamName, matchStats.WinningTeam, matchStats.Season)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -120,10 +78,10 @@ func insertMatchStats(db *sql.DB, matchStats MatchStats) int {
 	return int(pk)
 }
 
-func insertTeamStats(db *sql.DB, matchStats MatchStats) int {
-	query := "INSERT INTO team_stats (team_name, quarter_one_score, quarter_one_result, quarter_one_data, quarter_two_score, quarter_two_result, quarter_two_data, quarter_three_score, quarter_three_data, quarter_three_result, quarter_four_score, quarter_four_data, quarter_four_result, match_result, match_data, final_score) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"
+func insertTeamStats(db *sql.DB, teamStats TeamStatsWithMatchId) int {
+	query := "INSERT INTO team_stats (match_id, team_name, quarter_one_score, quarter_one_result, quarter_one_data, quarter_two_score, quarter_two_result, quarter_two_data, quarter_three_score, quarter_three_data, quarter_three_result, quarter_four_score, quarter_four_data, quarter_four_result, match_result, match_data, final_score) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"
 	// TODO: Finish query
-	result, err := db.Exec(query, matchStats.MatchID, matchStats.TeamOne.TeamName, matchStats.TeamTwo.TeamName, matchStats.WinningTeam)
+	result, err := db.Exec(query, teamStats.MatchID, teamStats.TeamName, teamStats.QuarterOneScore, teamStats.QuarterOneResult, teamStats.QuarterOneData, teamStats.QuarterTwoScore, teamStats.QuarterTwoResult, teamStats.QuarterTwoData, teamStats.QuarterThreeScore, teamStats.QuarterThreeResult, teamStats.QuarterThreeData, teamStats.QuarterFourScore, teamStats.QuarterFourResult, teamStats.QuarterFourData, teamStats.MatchResult, teamStats.MatchData, teamStats.FinalScore)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -137,7 +95,7 @@ func insertTeamStats(db *sql.DB, matchStats MatchStats) int {
 	return int(pk)
 }
 
-func handleDBConnection() {
+func handleDBConnection(seasons [][]MatchStats) {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal(err)
@@ -155,30 +113,57 @@ func handleDBConnection() {
 		log.Fatal(dbErr)
 	}
 
-	// Upload data per season
-	// 1. Create tables for matches + team stats
-	//createMatchStatsDBTables(db) // done
-	//createTeamStatsDBTables(db) // done
-	// 1.5 Create a table for each team name??
-	//createTeamDBTables(db) // done
-
-	// Test works
-	//var tMatch = MatchStats{
-	//	MatchID: "slegjhw;ehjg",
-	//	TeamOne: TeamStats{
-	//		TeamName: "Full Send",
-	//	},
-	//	TeamTwo: TeamStats{
-	//		TeamName: "Nah bro",
-	//	},
-	//	WinningTeam: "FULL SEND",
-	//}
-	//insertMatchStats(db, tMatch) // test
-
-	// 2. Add Match Stats to DB table
-	// 3. Add Team Stats
-
 	// For each match, create the match stats and two teams stats entries
+	// Remember to add season number also...
+	for _, matches := range seasons {
+		for _, match := range matches {
+			// Create a team entry for each team
+			var teamOne = TeamStatsWithMatchId{
+				MatchID:            match.MatchID,
+				TeamName:           match.TeamOne.TeamName,
+				QuarterOneScore:    match.TeamOne.QuarterOneScore,
+				QuarterOneData:     match.TeamOne.QuarterOneData,
+				QuarterOneResult:   match.TeamOne.QuarterOneResult,
+				QuarterTwoScore:    match.TeamOne.QuarterTwoScore,
+				QuarterTwoData:     match.TeamOne.QuarterTwoData,
+				QuarterTwoResult:   match.TeamOne.QuarterTwoResult,
+				QuarterThreeScore:  match.TeamOne.QuarterThreeScore,
+				QuarterThreeData:   match.TeamOne.QuarterThreeData,
+				QuarterThreeResult: match.TeamOne.QuarterThreeResult,
+				QuarterFourScore:   match.TeamOne.QuarterFourScore,
+				QuarterFourData:    match.TeamOne.QuarterFourData,
+				QuarterFourResult:  match.TeamOne.QuarterFourResult,
+				MatchResult:        match.TeamOne.MatchResult,
+				MatchData:          match.TeamOne.MatchData,
+				FinalScore:         match.TeamOne.FinalScore,
+			}
+
+			var teamTwo = TeamStatsWithMatchId{
+				MatchID:            match.MatchID,
+				TeamName:           match.TeamTwo.TeamName,
+				QuarterOneScore:    match.TeamTwo.QuarterOneScore,
+				QuarterOneData:     match.TeamTwo.QuarterOneData,
+				QuarterOneResult:   match.TeamTwo.QuarterOneResult,
+				QuarterTwoScore:    match.TeamTwo.QuarterTwoScore,
+				QuarterTwoData:     match.TeamTwo.QuarterTwoData,
+				QuarterTwoResult:   match.TeamTwo.QuarterTwoResult,
+				QuarterThreeScore:  match.TeamTwo.QuarterThreeScore,
+				QuarterThreeData:   match.TeamTwo.QuarterThreeData,
+				QuarterThreeResult: match.TeamTwo.QuarterThreeResult,
+				QuarterFourScore:   match.TeamTwo.QuarterFourScore,
+				QuarterFourData:    match.TeamTwo.QuarterFourData,
+				QuarterFourResult:  match.TeamTwo.QuarterFourResult,
+				MatchResult:        match.TeamTwo.MatchResult,
+				MatchData:          match.TeamTwo.MatchData,
+				FinalScore:         match.TeamTwo.FinalScore,
+			}
+			// Create separate team entries
+			insertTeamStats(db, teamOne)
+			insertTeamStats(db, teamTwo)
+			// Create match entry
+			insertMatchStats(db, match)
+		}
+	}
 
 	defer func(db *sql.DB) {
 		err := db.Close()

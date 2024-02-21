@@ -24,4 +24,25 @@ type MatchStats struct {
 	TeamOne     TeamStats
 	TeamTwo     TeamStats
 	WinningTeam string
+	Season      string
+}
+
+type TeamStatsWithMatchId struct {
+	MatchID            string
+	TeamName           string
+	QuarterOneScore    int
+	QuarterOneResult   string
+	QuarterOneData     string
+	QuarterTwoScore    int
+	QuarterTwoResult   string
+	QuarterTwoData     string
+	QuarterThreeScore  int
+	QuarterThreeData   string
+	QuarterThreeResult string
+	QuarterFourScore   int
+	QuarterFourData    string
+	QuarterFourResult  string
+	MatchResult        string
+	MatchData          string
+	FinalScore         int
 }

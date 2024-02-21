@@ -19,7 +19,7 @@ func main() {
 
 	// Generate season data
 	var aflSeasonList []AFLSeasonList
-	totalSeasons := 30
+	totalSeasons := 30 // Total amount of seasons to record
 	lastSeason := 2023 // Season we want to start counting back from
 
 	for i := 0; i < totalSeasons; i++ {
@@ -61,15 +61,17 @@ func main() {
 
 	fmt.Println(pageData)
 	// Connect to DB
-	//handleDBConnection()
+	handleDBConnection(pageData)
 }
 
 // TODO:
 // Return this out somewhere??!?!
 // Every () should return an error.
-func ExtractMatchStats(gameURL string) (MatchStats, error) {
+func ExtractMatchStats(gameURL string, season string) (MatchStats, error) {
 	// Struct to contain full match data
-	var MatchResult = MatchStats{}
+	var MatchResult = MatchStats{
+		Season: season,
+	}
 	teamOneSet := false
 
 	lines := strings.Split(gameURL, "\n")
@@ -171,7 +173,7 @@ func getPageStats(url string, year string) ([]MatchStats, error) {
 		// Every 2nd table on the page has the data we require
 		// Ignore round number + we start at round 1.
 		//fmt.Println(e.Text)
-		matchStats, err = ExtractMatchStats(e.Text)
+		matchStats, err = ExtractMatchStats(e.Text, year)
 		if err != nil {
 			// Handle error
 			return
