@@ -149,7 +149,7 @@ func (s *TeamStats) SetQuarterScore(quarter, score int) {
 	}
 }
 
-func updateQuarterResult(teamOne, teamTwo *TeamStats) {
+func updateQuarterResult(teamOne, teamTwo *TeamStatsWithMatchId) {
 	updateQuarter(&teamOne.QuarterOneResult, &teamTwo.QuarterOneResult, teamOne.QuarterOneScore, teamTwo.QuarterOneScore)
 	updateQuarter(&teamOne.QuarterTwoResult, &teamTwo.QuarterTwoResult, teamOne.QuarterTwoScore, teamTwo.QuarterTwoScore)
 	updateQuarter(&teamOne.QuarterThreeResult, &teamTwo.QuarterThreeResult, teamOne.QuarterThreeScore, teamTwo.QuarterThreeScore)
@@ -307,7 +307,8 @@ func scrapePageData() {
 func ExtractMatchStats(gameURL string, season string) (MatchStats, error) {
 	// Struct to contain full match data
 	var MatchResult = MatchStats{
-		Season: season,
+		Season:  season,
+		MatchID: uuid.New().String(),
 	}
 	teamOneSet := false
 
@@ -333,17 +334,52 @@ func ExtractMatchStats(gameURL string, season string) (MatchStats, error) {
 			stats := ExtractTeamStats(adjustedLine, teamToUse)
 
 			if !teamOneSet {
-				MatchResult.TeamOne = stats
+				MatchResult.TeamOne = TeamStatsWithMatchId{
+					MatchID:            MatchResult.MatchID,
+					TeamName:           stats.TeamName,
+					QuarterOneScore:    stats.QuarterOneScore,
+					QuarterOneResult:   stats.QuarterOneResult,
+					QuarterOneData:     stats.QuarterOneData,
+					QuarterTwoScore:    stats.QuarterTwoScore,
+					QuarterTwoResult:   stats.QuarterTwoResult,
+					QuarterTwoData:     stats.QuarterTwoData,
+					QuarterThreeScore:  stats.QuarterThreeScore,
+					QuarterThreeResult: stats.QuarterThreeResult,
+					QuarterThreeData:   stats.QuarterThreeData,
+					QuarterFourScore:   stats.QuarterFourScore,
+					QuarterFourResult:  stats.QuarterFourResult,
+					QuarterFourData:    stats.QuarterFourData,
+					MatchResult:        stats.MatchResult,
+					MatchData:          stats.MatchData,
+					FinalScore:         stats.FinalScore,
+				}
 				teamOneSet = true
 				continue
 			}
 
-			MatchResult.TeamTwo = stats
+			MatchResult.TeamTwo = TeamStatsWithMatchId{
+				MatchID:            MatchResult.MatchID,
+				TeamName:           stats.TeamName,
+				QuarterOneScore:    stats.QuarterOneScore,
+				QuarterOneResult:   stats.QuarterOneResult,
+				QuarterOneData:     stats.QuarterOneData,
+				QuarterTwoScore:    stats.QuarterTwoScore,
+				QuarterTwoResult:   stats.QuarterTwoResult,
+				QuarterTwoData:     stats.QuarterTwoData,
+				QuarterThreeScore:  stats.QuarterThreeScore,
+				QuarterThreeResult: stats.QuarterThreeResult,
+				QuarterThreeData:   stats.QuarterThreeData,
+				QuarterFourScore:   stats.QuarterFourScore,
+				QuarterFourResult:  stats.QuarterFourResult,
+				QuarterFourData:    stats.QuarterFourData,
+				MatchResult:        stats.MatchResult,
+				MatchData:          stats.MatchData,
+				FinalScore:         stats.FinalScore,
+			}
 			break
 		}
 	}
 
-	MatchResult.MatchID = uuid.New().String()
 	// Find match winner
 	tempTeamOneOutcome := MatchResult.TeamOne.FinalScore
 	tempTeamTwoOutcome := MatchResult.TeamTwo.FinalScore

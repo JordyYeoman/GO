@@ -21,8 +21,8 @@ type TeamStats struct {
 
 type MatchStats struct {
 	MatchID     string
-	TeamOne     TeamStats
-	TeamTwo     TeamStats
+	TeamOne     TeamStatsWithMatchId
+	TeamTwo     TeamStatsWithMatchId
 	WinningTeam string
 	Season      string
 }
