@@ -6,6 +6,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// TODO: Add weighting from betfair model: https://www.betfair.com.au/hub/sports/afl/afl-predictions-model/
+
 func getMatchesWhereTeamWonFirstQuarterAndWon(matches []MatchStats, teamName string) []MatchStats {
 	var filteredMatches []MatchStats
 
