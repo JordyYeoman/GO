@@ -6,6 +6,30 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func getMatchesWhereTeamWonFirstQuarterAndWon(matches []MatchStats, teamName string) []MatchStats {
+	var filteredMatches []MatchStats
+
+	for _, match := range matches {
+		if match.TeamOne.TeamName == teamName && match.TeamOne.QuarterOneResult == "WIN" && match.TeamOne.MatchResult == "WIN" || match.TeamTwo.TeamName == teamName && match.TeamTwo.QuarterOneResult == "WIN" && match.TeamOne.MatchResult == "WIN" {
+			filteredMatches = append(filteredMatches, match)
+		}
+	}
+
+	return filteredMatches
+}
+
+func getMatchesWhereTeamWonFirstQuarterAndLost(matches []MatchStats, teamName string) []MatchStats {
+	var filteredMatches []MatchStats
+
+	for _, match := range matches {
+		if match.TeamOne.TeamName == teamName && match.TeamOne.QuarterOneResult == "WIN" && match.TeamOne.MatchResult == "LOSS" || match.TeamTwo.TeamName == teamName && match.TeamTwo.QuarterOneResult == "WIN" && match.TeamOne.MatchResult == "LOSS" {
+			filteredMatches = append(filteredMatches, match)
+		}
+	}
+
+	return filteredMatches
+}
+
 func getMatchesWhereTeamOneWonFirstQuarter(matches []MatchStats, teamName string) []MatchStats {
 	var filteredMatches []MatchStats
 
@@ -41,11 +65,17 @@ func main() {
 
 	filteredMatches := getMatchesWhereTeamOneWonFirstQuarter(allTimeTeamVsTeamStats, teamOne)
 	filteredMatchesTwo := getMatchesWhereTeamOneWonFirstQuarter(allTimeTeamVsTeamStats, teamTwo)
+	filteredMatchesThree := getMatchesWhereTeamWonFirstQuarterAndWon(allTimeTeamVsTeamStats, teamOne)
+	filteredMatchesFour := getMatchesWhereTeamWonFirstQuarterAndLost(allTimeTeamVsTeamStats, teamOne)
 
 	fmt.Println()
 	fmt.Printf("Number of times collingwood won first quarter against carlton in last 30 years: %+v, out of total games: %+v", len(filteredMatches), len(allTimeTeamVsTeamStats))
 	fmt.Println()
 	fmt.Printf("Number of times carlton won first quarter against collingwood in last 30 years: %+v, out of total games: %+v", len(filteredMatchesTwo), len(allTimeTeamVsTeamStats))
+	fmt.Println()
+	fmt.Printf("Number of times collingwood won first quarter against carlton and WON in last 30 years: %+v, out of total games: %+v", len(filteredMatchesThree), len(allTimeTeamVsTeamStats))
+	fmt.Println()
+	fmt.Printf("Number of times collingwood won first quarter against carlton and LOST in last 30 years: %+v, out of total games: %+v", len(filteredMatchesFour), len(allTimeTeamVsTeamStats))
 	fmt.Println()
 	//
 	//var quarterOneWins []TeamStatsWithMatchId
@@ -110,7 +140,12 @@ func getTeamVsTeamStats(db *sql.DB, teamOne string, teamTwo string) ([]MatchStat
 		log.WithError(err).Warn("Error querying db")
 	}
 
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
 
 	for rows.Next() {
 		err := rows.Scan(&match_id, &team_one, &team_two, &winning_team, &season)
