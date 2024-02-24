@@ -20,6 +20,38 @@ func getMatchesWhereTeamWonFirstQuarterAndWon(matches []MatchStats, teamName str
 	return filteredMatches
 }
 
+func getQuarterResult(team TeamStatsWithMatchId, quarter int) string {
+	switch quarter {
+	case 1:
+		return team.QuarterOneResult
+	case 2:
+		return team.QuarterTwoResult
+	case 3:
+		return team.QuarterThreeResult
+	case 4:
+		return team.QuarterFourResult
+	default:
+		return "" // Handle invalid quarter
+	}
+}
+
+func getMatchesWhereTeamOneQuarterXAndLost(matches []MatchStats, teamName string, quarter int) []MatchStats {
+	var filteredMatches []MatchStats
+
+	for _, match := range matches {
+		team := match.TeamOne
+		if match.TeamTwo.TeamName == teamName {
+			team = match.TeamTwo
+		}
+
+		if team.TeamName == teamName && getQuarterResult(team, quarter) == "WIN" && team.MatchResult == "LOSS" {
+			filteredMatches = append(filteredMatches, match)
+		}
+	}
+
+	return filteredMatches
+}
+
 func getMatchesWhereTeamWonFirstQuarterAndLost(matches []MatchStats, teamName string) []MatchStats {
 	var filteredMatches []MatchStats
 
@@ -69,6 +101,8 @@ func main() {
 	filteredMatchesTwo := getMatchesWhereTeamOneWonFirstQuarter(allTimeTeamVsTeamStats, teamTwo)
 	filteredMatchesThree := getMatchesWhereTeamWonFirstQuarterAndWon(allTimeTeamVsTeamStats, teamOne)
 	filteredMatchesFour := getMatchesWhereTeamWonFirstQuarterAndLost(allTimeTeamVsTeamStats, teamOne)
+	filteredMatchesFive := getMatchesWhereTeamOneQuarterXAndLost(allTimeTeamVsTeamStats, teamOne, 1)
+	filteredMatchesSix := getMatchesWhereTeamOneQuarterXAndLost(allTimeTeamVsTeamStats, teamOne, 2)
 
 	fmt.Println()
 	fmt.Printf("Number of times collingwood won first quarter against carlton in last 30 years: %+v, out of total games: %+v", len(filteredMatches), len(allTimeTeamVsTeamStats))
@@ -78,6 +112,10 @@ func main() {
 	fmt.Printf("Number of times collingwood won first quarter against carlton and WON in last 30 years: %+v, out of total games: %+v", len(filteredMatchesThree), len(allTimeTeamVsTeamStats))
 	fmt.Println()
 	fmt.Printf("Number of times collingwood won first quarter against carlton and LOST in last 30 years: %+v, out of total games: %+v", len(filteredMatchesFour), len(allTimeTeamVsTeamStats))
+	fmt.Println()
+	fmt.Printf("Number of times collingwood won first quarter against carlton and LOST in last 30 years: %+v, out of total games: %+v", len(filteredMatchesFive), len(allTimeTeamVsTeamStats))
+	fmt.Println()
+	fmt.Printf("Number of times collingwood won second quarter against carlton and LOST in last 30 years: %+v, out of total games: %+v", len(filteredMatchesSix), len(allTimeTeamVsTeamStats))
 	fmt.Println()
 	//
 	//var quarterOneWins []TeamStatsWithMatchId
