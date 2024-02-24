@@ -35,22 +35,23 @@ func getQuarterResult(team TeamStatsWithMatchId, quarter int) string {
 	}
 }
 
-func getMatchesWhereTeamOneQuarterXAndLost(matches []MatchStats, teamName string, quarter int) []MatchStats {
-	var filteredMatches []MatchStats
-
-	for _, match := range matches {
-		team := match.TeamOne
-		if match.TeamTwo.TeamName == teamName {
-			team = match.TeamTwo
-		}
-
-		if team.TeamName == teamName && getQuarterResult(team, quarter) == "WIN" && team.MatchResult == "LOSS" {
-			filteredMatches = append(filteredMatches, match)
-		}
-	}
-
-	return filteredMatches
-}
+//
+//func getAllTimeTeamWinsXQuarterAndXOutcome(matches []MatchStats, teamName string, quarter int, quarterResult string, matchResult string) []MatchStats {
+//	var filteredMatches []MatchStats
+//
+//	for _, match := range matches {
+//		team := match.TeamOne
+//		if match.TeamTwo.TeamName == teamName {
+//			team = match.TeamTwo
+//		}
+//
+//		if team.TeamName == teamName && getQuarterResult(team, quarter) == quarterResult && team.MatchResult == matchResult {
+//			filteredMatches = append(filteredMatches, match)
+//		}
+//	}
+//
+//	return filteredMatches
+//}
 
 func getMatchesWhereTeamWonFirstQuarterAndLost(matches []MatchStats, teamName string) []MatchStats {
 	var filteredMatches []MatchStats
@@ -89,56 +90,27 @@ func main() {
 	// Connect to DB
 	db := connectToDB()
 	teamOne := "Collingwood"
-	teamTwo := "Carlton"
+	//teamTwo := "Carlton"
 
-	// allTimeTeamStats := getAllTeamStats(db, teamOne)
-	allTimeTeamVsTeamStats, allTimeTeamErr := getTeamVsTeamStats(db, teamOne, teamTwo)
-	if allTimeTeamErr != nil {
-		log.Fatal(allTimeTeamErr)
-	}
-
-	filteredMatches := getMatchesWhereTeamOneWonFirstQuarter(allTimeTeamVsTeamStats, teamOne)
-	filteredMatchesTwo := getMatchesWhereTeamOneWonFirstQuarter(allTimeTeamVsTeamStats, teamTwo)
-	filteredMatchesThree := getMatchesWhereTeamWonFirstQuarterAndWon(allTimeTeamVsTeamStats, teamOne)
-	filteredMatchesFour := getMatchesWhereTeamWonFirstQuarterAndLost(allTimeTeamVsTeamStats, teamOne)
-	filteredMatchesFive := getMatchesWhereTeamOneQuarterXAndLost(allTimeTeamVsTeamStats, teamOne, 1)
-	filteredMatchesSix := getMatchesWhereTeamOneQuarterXAndLost(allTimeTeamVsTeamStats, teamOne, 2)
-
-	fmt.Println()
-	fmt.Printf("Number of times collingwood won first quarter against carlton in last 30 years: %+v, out of total games: %+v", len(filteredMatches), len(allTimeTeamVsTeamStats))
-	fmt.Println()
-	fmt.Printf("Number of times carlton won first quarter against collingwood in last 30 years: %+v, out of total games: %+v", len(filteredMatchesTwo), len(allTimeTeamVsTeamStats))
-	fmt.Println()
-	fmt.Printf("Number of times collingwood won first quarter against carlton and WON in last 30 years: %+v, out of total games: %+v", len(filteredMatchesThree), len(allTimeTeamVsTeamStats))
-	fmt.Println()
-	fmt.Printf("Number of times collingwood won first quarter against carlton and LOST in last 30 years: %+v, out of total games: %+v", len(filteredMatchesFour), len(allTimeTeamVsTeamStats))
-	fmt.Println()
-	fmt.Printf("Number of times collingwood won first quarter against carlton and LOST in last 30 years: %+v, out of total games: %+v", len(filteredMatchesFive), len(allTimeTeamVsTeamStats))
-	fmt.Println()
-	fmt.Printf("Number of times collingwood won second quarter against carlton and LOST in last 30 years: %+v, out of total games: %+v", len(filteredMatchesSix), len(allTimeTeamVsTeamStats))
-	fmt.Println()
-	//
-	//var quarterOneWins []TeamStatsWithMatchId
-	//var quarterOneLosses []TeamStatsWithMatchId
-	//var quarterOneDraws []TeamStatsWithMatchId
-	//
-	//for _, team := range allTimeTeamStats {
-	//	if team.QuarterOneResult == "LOSS" {
-	//		quarterOneLosses = append(quarterOneLosses, team)
-	//	} else if team.QuarterOneResult == "WIN" {
-	//		quarterOneWins = append(quarterOneWins, team)
-	//	} else {
-	//		quarterOneDraws = append(quarterOneDraws, team)
-	//	}
+	// Collingwood all time team stats
+	allTimeTeamStats := getAllTeamStats(db, teamOne)
+	// Collingwood wins half time and loses
+	allTimeTeamWinsSecondQAndLoses := getAllTimeTeamWinsXQuarterAndXOutcome(allTimeTeamStats, 2, "WIN", "LOSS")
+	// Collingwood wins half time and wins
+	allTimeTeamWinsSecondQAndWins := getAllTimeTeamWinsXQuarterAndXOutcome(allTimeTeamStats, 2, "WIN", "WIN")
+	//allTimeTeamVsTeamStats, allTimeTeamErr := getTeamVsTeamStats(db, teamOne, teamTwo)
+	//if allTimeTeamErr != nil {
+	//	log.Fatal(allTimeTeamErr)
 	//}
-	//
-	//fmt.Println()
-	//fmt.Printf("%+v Quarter One Wins %+v", teamName, len(quarterOneWins))
-	//fmt.Println()
-	//fmt.Printf("%+v Quarter One Losses %+v", teamName, len(quarterOneLosses))
-	//fmt.Println()
-	//fmt.Printf("%+v Quarter One Draws %+v", teamName, len(quarterOneDraws))
-	//fmt.Println()
+
+	fmt.Println()
+	fmt.Printf("Collingwood wins half time and loses over 30 years: %+v", len(allTimeTeamWinsSecondQAndLoses))
+	fmt.Println()
+	fmt.Printf("Collingwood wins half time and wins over 30 years: %+v", len(allTimeTeamWinsSecondQAndWins))
+	fmt.Println()
+	fmt.Printf("Total collingwood games over last  30 years: %+v", len(allTimeTeamStats))
+	fmt.Println()
+	fmt.Println()
 
 	// Disconnect DB
 	defer func(db *sql.DB) {
@@ -149,12 +121,23 @@ func main() {
 	}(db) // Defer means run this when the wrapping function terminates
 }
 
+func getAllTimeTeamWinsXQuarterAndXOutcome(teamStatsList []TeamStatsWithMatchId, quarter int, quarterResult string, matchResult string) []TeamStatsWithMatchId {
+	var filteredTeamList []TeamStatsWithMatchId
+
+	for _, team := range teamStatsList {
+		if getQuarterResult(team, quarter) == quarterResult && team.MatchResult == matchResult {
+			filteredTeamList = append(filteredTeamList, team)
+		}
+	}
+
+	return filteredTeamList
+}
+
 // Function to fetch team stats for a given match_id and team
 func getTeamStats(db *sql.DB, matchID string, teamName string) (TeamStatsWithMatchId, error) {
 	var teamStats TeamStatsWithMatchId
 
 	// Query team stats
-	//err := db.QueryRow("SELECT * FROM team_stats WHERE match_id = ? AND team_name = ?", matchID, teamName).Scan(&teamStats.MatchID, &teamStats.TeamName, &teamStats.QuarterOneScore, &teamStats.QuarterOneResult, &teamStats.QuarterOneData, &teamStats.QuarterTwoScore, &teamStats.QuarterTwoResult, &teamStats.QuarterTwoData, &teamStats.QuarterThreeScore, &teamStats.QuarterThreeResult, &teamStats.QuarterThreeData, &teamStats.QuarterFourScore, &teamStats.QuarterFourResult, &teamStats.QuarterFourData, &teamStats.MatchResult, &teamStats.MatchData, &teamStats.FinalScore)
 	err := db.QueryRow("SELECT match_id, team_name, quarter_one_score, quarter_one_result, quarter_one_data, quarter_two_score, quarter_two_result, quarter_two_data, quarter_three_score, quarter_three_result, quarter_three_data, quarter_four_score, quarter_four_result, quarter_four_data, match_result, match_data, final_score FROM team_stats WHERE match_id = ? AND team_name = ?", matchID, teamName).Scan(&teamStats.MatchID, &teamStats.TeamName, &teamStats.QuarterOneScore, &teamStats.QuarterOneResult, &teamStats.QuarterOneData, &teamStats.QuarterTwoScore, &teamStats.QuarterTwoResult, &teamStats.QuarterTwoData, &teamStats.QuarterThreeScore, &teamStats.QuarterThreeResult, &teamStats.QuarterThreeData, &teamStats.QuarterFourScore, &teamStats.QuarterFourResult, &teamStats.QuarterFourData, &teamStats.MatchResult, &teamStats.MatchData, &teamStats.FinalScore)
 	if err != nil {
 		return teamStats, err
@@ -253,6 +236,6 @@ func getAllTeamStats(db *sql.DB, teamName string) []TeamStatsWithMatchId {
 		data = append(data, TeamStatsWithMatchId{match_id, team_name, quarter_one_score, quarter_one_result, quarter_one_data, quarter_two_score, quarter_two_result, quarter_two_data, quarter_three_score, quarter_three_data, quarter_three_result, quarter_four_score, quarter_four_data, quarter_four_result, match_result, match_data, final_score})
 	}
 
-	fmt.Println(data)
+	//fmt.Println(data)
 	return data
 }
