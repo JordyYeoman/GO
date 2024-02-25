@@ -5,16 +5,13 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
+	_ "github.com/go-sql-driver/mysql" // Importing a package for side effects, no direct usages (interface for DB)
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
-// TODO: Add weighting from betfair model: https://www.betfair.com.au/hub/sports/afl/afl-predictions-model/
-// TODO: Add endpoints for analysis between teams, quarter, win prob % etc
-// TODO: Handle simple auth
-
 func main() {
-	// Connect to DB
+	////Connect to DB
 	db := connectToDB()
 
 	// Create routes for API

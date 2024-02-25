@@ -62,6 +62,8 @@ package main
 //
 //	// Create team_stats table (If required)
 //	createTeamStatsDBTables(db)
+//	// Create match_stats table (If required)
+//	createMatchStatsDBTables(db)
 //
 //	insertTeamStatsWithMatchId(db, pageData)
 //
@@ -307,7 +309,7 @@ package main
 //	query := `CREATE TABLE IF NOT EXISTS team_stats (
 //		id INT AUTO_INCREMENT PRIMARY KEY,
 //		match_id TEXT,
-//    	team_name TEXT,
+//  	team_name TEXT,
 //		quarter_one_score BIGINT,
 //		quarter_one_result TEXT,
 //		quarter_one_data TEXT,
@@ -330,4 +332,36 @@ package main
 //	if err != nil {
 //		log.Fatal(err)
 //	}
+//}
+//
+//func createMatchStatsDBTables(db *sql.DB) {
+//	query := `CREATE TABLE IF NOT EXISTS match_stats (
+//		id INT AUTO_INCREMENT PRIMARY KEY,
+//   	match_id TEXT,
+//		team_one VARCHAR(255),
+//		team_two VARCHAR(255),
+//		winning_team TEXT,
+//		season TEXT
+//	)`
+//
+//	_, err := db.Exec(query) // Execute query against DB without returning any rows
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//}
+//
+//func insertMatchStats(db *sql.DB, matchStats MatchStats) int {
+//	query := "INSERT INTO match_stats (match_id, team_one, team_two, winning_team, season) VALUES (?, ?, ?, ?, ?);"
+//	result, err := db.Exec(query, matchStats.MatchID, matchStats.TeamOne.TeamName, matchStats.TeamTwo.TeamName, matchStats.WinningTeam, matchStats.Season)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	// Retrieve the last inserted ID
+//	pk, err := result.LastInsertId()
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	return int(pk)
 //}

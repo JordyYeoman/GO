@@ -64,22 +64,6 @@ func GetMatchData(sliceOfStrings []string) string {
 	return tempStr
 }
 
-func insertMatchStats(db *sql.DB, matchStats MatchStats) int {
-	query := "INSERT INTO match_stats (match_id, team_one, team_two, winning_team, season) VALUES (?, ?, ?, ?, ?);"
-	result, err := db.Exec(query, matchStats.MatchID, matchStats.TeamOne.TeamName, matchStats.TeamTwo.TeamName, matchStats.WinningTeam, matchStats.Season)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Retrieve the last inserted ID
-	pk, err := result.LastInsertId()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return int(pk)
-}
-
 func insertTeamStats(db *sql.DB, teamStats TeamStatsWithMatchId) int {
 	query := "INSERT INTO team_stats (match_id, team_name, quarter_one_score, quarter_one_result, quarter_one_data, quarter_two_score, quarter_two_result, quarter_two_data, quarter_three_score, quarter_three_data, quarter_three_result, quarter_four_score, quarter_four_data, quarter_four_result, match_result, match_data, final_score, season) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"
 
