@@ -2,10 +2,12 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql" // Importing a package for side effects, no direct usages (interface for DB)
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -291,7 +293,7 @@ func getOnlyLast5YearsOfTeamStats(allTeamStats []TeamStatsWithMatchId, startingS
 	return data
 }
 
-func getAllTeamStats(db *sql.DB, teamName string) []TeamStatsWithMatchId {
+func getAllTeamStatsFromDb(db *sql.DB, teamName string) []TeamStatsWithMatchId {
 	var data []TeamStatsWithMatchId
 
 	// Placeholder values to hold query data
@@ -405,7 +407,7 @@ func fakeMain() {
 	teamOne := "Collingwood"
 
 	// Get all time team stats
-	allTimeTeamStats := getAllTeamStats(db, teamOne)
+	allTimeTeamStats := getAllTeamStatsFromDb(db, teamOne)
 	// all team stats for only last 5 years
 	allTeamStatsOfLast5Years := getOnlyLast5YearsOfTeamStats(allTimeTeamStats, 2022)
 	// Team wins at half time and loses game
@@ -433,4 +435,18 @@ func fakeMain() {
 			log.WithError(err).Warn("Failed to disconnect DB")
 		}
 	}(db) // Defer means run this when the wrapping function terminates
+}
+
+// Generic method to handle responses requiring json - all of em? lel
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	// marshall the payload into a JSON string
+	data, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Failed to marshall json response: %v", payload)
+		w.WriteHeader(500)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(code) // setting response status code
+	w.Write(data)
 }
