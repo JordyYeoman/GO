@@ -45,4 +45,5 @@ type TeamStatsWithMatchId struct {
 	MatchResult        string
 	MatchData          string
 	FinalScore         int
+	Season             int
 }

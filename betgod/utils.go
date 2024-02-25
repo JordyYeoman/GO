@@ -4,10 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql" // Importing a package for side effects, no direct usages (interface for DB)
-	"github.com/gocolly/colly"
-	"github.com/google/uuid"
 	"github.com/joho/godotenv"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"strconv"
 	"strings"
@@ -81,9 +79,9 @@ func insertMatchStats(db *sql.DB, matchStats MatchStats) int {
 }
 
 func insertTeamStats(db *sql.DB, teamStats TeamStatsWithMatchId) int {
-	query := "INSERT INTO team_stats (match_id, team_name, quarter_one_score, quarter_one_result, quarter_one_data, quarter_two_score, quarter_two_result, quarter_two_data, quarter_three_score, quarter_three_data, quarter_three_result, quarter_four_score, quarter_four_data, quarter_four_result, match_result, match_data, final_score) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"
-	// TODO: Finish query
-	result, err := db.Exec(query, teamStats.MatchID, teamStats.TeamName, teamStats.QuarterOneScore, teamStats.QuarterOneResult, teamStats.QuarterOneData, teamStats.QuarterTwoScore, teamStats.QuarterTwoResult, teamStats.QuarterTwoData, teamStats.QuarterThreeScore, teamStats.QuarterThreeResult, teamStats.QuarterThreeData, teamStats.QuarterFourScore, teamStats.QuarterFourResult, teamStats.QuarterFourData, teamStats.MatchResult, teamStats.MatchData, teamStats.FinalScore)
+	query := "INSERT INTO team_stats (match_id, team_name, quarter_one_score, quarter_one_result, quarter_one_data, quarter_two_score, quarter_two_result, quarter_two_data, quarter_three_score, quarter_three_data, quarter_three_result, quarter_four_score, quarter_four_data, quarter_four_result, match_result, match_data, final_score, season) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"
+
+	result, err := db.Exec(query, teamStats.MatchID, teamStats.TeamName, teamStats.QuarterOneScore, teamStats.QuarterOneResult, teamStats.QuarterOneData, teamStats.QuarterTwoScore, teamStats.QuarterTwoResult, teamStats.QuarterTwoData, teamStats.QuarterThreeScore, teamStats.QuarterThreeResult, teamStats.QuarterThreeData, teamStats.QuarterFourScore, teamStats.QuarterFourResult, teamStats.QuarterFourData, teamStats.MatchResult, teamStats.MatchData, teamStats.FinalScore, teamStats.Season)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -252,220 +250,187 @@ type AFLSeasonList struct {
 	seasonYear string
 }
 
-func scrapePageData() {
-	fmt.Println("System Online and Ready Sir")
+func GetQuarterResult(team TeamStatsWithMatchId, quarter int) string {
+	switch quarter {
+	case 1:
+		return team.QuarterOneResult
+	case 2:
+		return team.QuarterTwoResult
+	case 3:
+		return team.QuarterThreeResult
+	case 4:
+		return team.QuarterFourResult
+	default:
+		return "" // Handle invalid quarter
+	}
+}
 
-	// Generate season data
-	var aflSeasonList []AFLSeasonList
-	totalSeasons := 30 // Total amount of seasons to record
-	lastSeason := 2023 // Season we want to start counting back from
+// Function to fetch team stats for a given match_id and team
+func GetTeamStats(db *sql.DB, matchID string, teamName string) (TeamStatsWithMatchId, error) {
+	var teamStats TeamStatsWithMatchId
 
-	for i := 0; i < totalSeasons; i++ {
-		var season AFLSeasonList
-		// Convert lastSeason - i to string
-		seasonYear := strconv.Itoa(lastSeason - i)
-
-		// Concatenate the URL parts into a slice of strings
-		urlParts := []string{"https://afltables.com/afl/seas/", seasonYear, ".html"}
-
-		// Join the URL parts with an empty separator
-		url := strings.Join(urlParts, "")
-
-		season.seasonLink = url
-		season.seasonYear = seasonYear
-		// Append the URL to aflSeasonList
-		aflSeasonList = append(aflSeasonList, season)
+	// Query team stats
+	err := db.QueryRow("SELECT match_id, team_name, quarter_one_score, quarter_one_result, quarter_one_data, quarter_two_score, quarter_two_result, quarter_two_data, quarter_three_score, quarter_three_result, quarter_three_data, quarter_four_score, quarter_four_result, quarter_four_data, match_result, match_data, final_score, season FROM team_stats WHERE match_id = ? AND team_name = ?", matchID, teamName).Scan(&teamStats.MatchID, &teamStats.TeamName, &teamStats.QuarterOneScore, &teamStats.QuarterOneResult, &teamStats.QuarterOneData, &teamStats.QuarterTwoScore, &teamStats.QuarterTwoResult, &teamStats.QuarterTwoData, &teamStats.QuarterThreeScore, &teamStats.QuarterThreeResult, &teamStats.QuarterThreeData, &teamStats.QuarterFourScore, &teamStats.QuarterFourResult, &teamStats.QuarterFourData, &teamStats.MatchResult, &teamStats.MatchData, &teamStats.FinalScore, &teamStats.Season)
+	if err != nil {
+		return teamStats, err
 	}
 
-	// Create large slice of slices of matches
-	var pageData [][]MatchStats
-	//Loop over each page link and create dataset
-	for _, season := range aflSeasonList {
-		p, err := getPageStats(season.seasonLink, season.seasonYear)
-		// P1
-		// Subroutines should only 'handle' the error if it can recover from it,
-		// Return the error ^up if it can.
-		// Bubble this bad boi
+	return teamStats, nil
+}
 
-		// P2 - Graceful error handling.
-		// Never log AND return the error.
-		// What else can you do with the err??
+// Used for weighting higher levels of more recent years
+func getOnlyLast5YearsOfTeamStats(allTeamStats []TeamStatsWithMatchId, startingSeasonToCountBackFrom int) []TeamStatsWithMatchId {
+	var data []TeamStatsWithMatchId
+
+	for _, team := range allTeamStats {
+		if team.Season > startingSeasonToCountBackFrom-5 {
+			data = append(data, team)
+		}
+	}
+
+	return data
+}
+
+func getAllTeamStats(db *sql.DB, teamName string) []TeamStatsWithMatchId {
+	var data []TeamStatsWithMatchId
+
+	// Placeholder values to hold query data
+	var match_id string
+	var team_name string
+	var quarter_one_score int
+	var quarter_one_result string
+	var quarter_one_data string
+	var quarter_two_score int
+	var quarter_two_result string
+	var quarter_two_data string
+	var quarter_three_score int
+	var quarter_three_data string
+	var quarter_three_result string
+	var quarter_four_score int
+	var quarter_four_data string
+	var quarter_four_result string
+	var match_result string
+	var match_data string
+	var final_score int
+	var season int
+
+	rows, err := db.Query("SELECT match_id, team_name, quarter_one_score, quarter_one_result, quarter_one_data, quarter_two_score, quarter_two_result, quarter_two_data, quarter_three_score, quarter_three_data, quarter_three_result, quarter_four_score, quarter_four_data, quarter_four_result, match_result, match_data, final_score, season from team_stats WHERE team_name = ?", teamName)
+	if err != nil {
+		log.WithError(err).Warn("Error querying db")
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		err := rows.Scan(&match_id, &team_name, &quarter_one_score, &quarter_one_result, &quarter_one_data, &quarter_two_score, &quarter_two_result, &quarter_two_data, &quarter_three_score, &quarter_three_data, &quarter_three_result, &quarter_four_score, &quarter_four_data, &quarter_four_result, &match_result, &match_data, &final_score, &season)
+		if err != nil {
+			log.WithError(err).Warn("Error mapping db query to TeamStatsWithMatchId")
+		}
+		data = append(data, TeamStatsWithMatchId{match_id, team_name, quarter_one_score, quarter_one_result, quarter_one_data, quarter_two_score, quarter_two_result, quarter_two_data, quarter_three_score, quarter_three_data, quarter_three_result, quarter_four_score, quarter_four_data, quarter_four_result, match_result, match_data, final_score, season})
+	}
+
+	//fmt.Println(data)
+	return data
+}
+
+func getAllTimeTeamWinsXQuarterAndXOutcome(teamStatsList []TeamStatsWithMatchId, quarter int, quarterResult string, matchResult string) []TeamStatsWithMatchId {
+	var filteredTeamList []TeamStatsWithMatchId
+
+	for _, team := range teamStatsList {
+		if GetQuarterResult(team, quarter) == quarterResult && team.MatchResult == matchResult {
+			filteredTeamList = append(filteredTeamList, team)
+		}
+	}
+
+	return filteredTeamList
+}
+
+// Return every time teamOne plays teamTwo
+func getTeamVsTeamStats(db *sql.DB, teamOne string, teamTwo string) ([]MatchStats, error) {
+	var data []MatchStats
+
+	var (
+		match_id     string
+		team_one     string
+		team_two     string
+		winning_team string
+		season       string
+	)
+
+	rows, err := db.Query("SELECT match_id, team_one, team_two, winning_team, season from match_stats WHERE (team_one = ? AND team_two = ?) OR (team_two = ? AND team_one = ?)", teamOne, teamTwo, teamOne, teamTwo)
+	if err != nil {
+		log.WithError(err).Warn("Error querying db")
+	}
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
 		if err != nil {
 			log.Fatal(err)
-			//log.WithError(err).Warn("Getting page stats is DEAD")
 		}
+	}(rows)
 
-		pageData = append(pageData, p)
-	}
-
-	fmt.Println(pageData)
-}
-
-// TODO:
-// Return this out somewhere??!?!
-// Every () should return an error.
-func ExtractMatchStats(gameURL string, season string) (MatchStats, error) {
-	// Struct to contain full match data
-	var MatchResult = MatchStats{
-		Season:  season,
-		MatchID: uuid.New().String(),
-	}
-	teamOneSet := false
-
-	lines := strings.Split(gameURL, "\n")
-
-	for _, line := range lines {
-		// Extract team name and find the actual team name in map
-		tempLine := strings.Fields(line)
-
-		if len(tempLine) < 5 {
-			continue
-		}
-
-		tempStrC := strings.Join(tempLine[:5], " ")
-		// Find which team to use
-		teamToUse := FindCorrectTeamName(tempStrC)
-
-		if teamToUse != "" {
-			//fmt.Println("Found team:", teamToUse)
-
-			// Slice team name from string
-			adjustedLine := RemoveTeamName(line, teamToUse)
-			stats := ExtractTeamStats(adjustedLine, teamToUse)
-
-			if !teamOneSet {
-				MatchResult.TeamOne = TeamStatsWithMatchId{
-					MatchID:            MatchResult.MatchID,
-					TeamName:           stats.TeamName,
-					QuarterOneScore:    stats.QuarterOneScore,
-					QuarterOneResult:   stats.QuarterOneResult,
-					QuarterOneData:     stats.QuarterOneData,
-					QuarterTwoScore:    stats.QuarterTwoScore,
-					QuarterTwoResult:   stats.QuarterTwoResult,
-					QuarterTwoData:     stats.QuarterTwoData,
-					QuarterThreeScore:  stats.QuarterThreeScore,
-					QuarterThreeResult: stats.QuarterThreeResult,
-					QuarterThreeData:   stats.QuarterThreeData,
-					QuarterFourScore:   stats.QuarterFourScore,
-					QuarterFourResult:  stats.QuarterFourResult,
-					QuarterFourData:    stats.QuarterFourData,
-					MatchResult:        stats.MatchResult,
-					MatchData:          stats.MatchData,
-					FinalScore:         stats.FinalScore,
-				}
-				teamOneSet = true
-				continue
-			}
-
-			MatchResult.TeamTwo = TeamStatsWithMatchId{
-				MatchID:            MatchResult.MatchID,
-				TeamName:           stats.TeamName,
-				QuarterOneScore:    stats.QuarterOneScore,
-				QuarterOneResult:   stats.QuarterOneResult,
-				QuarterOneData:     stats.QuarterOneData,
-				QuarterTwoScore:    stats.QuarterTwoScore,
-				QuarterTwoResult:   stats.QuarterTwoResult,
-				QuarterTwoData:     stats.QuarterTwoData,
-				QuarterThreeScore:  stats.QuarterThreeScore,
-				QuarterThreeResult: stats.QuarterThreeResult,
-				QuarterThreeData:   stats.QuarterThreeData,
-				QuarterFourScore:   stats.QuarterFourScore,
-				QuarterFourResult:  stats.QuarterFourResult,
-				QuarterFourData:    stats.QuarterFourData,
-				MatchResult:        stats.MatchResult,
-				MatchData:          stats.MatchData,
-				FinalScore:         stats.FinalScore,
-			}
-			break
-		}
-	}
-
-	// Find match winner
-	tempTeamOneOutcome := MatchResult.TeamOne.FinalScore
-	tempTeamTwoOutcome := MatchResult.TeamTwo.FinalScore
-	// Set Quarter Results for each team (Needed when doing large single team analysis)
-	if MatchResult.TeamOne.QuarterOneScore > MatchResult.TeamTwo.QuarterOneScore {
-		MatchResult.TeamOne.QuarterOneResult = "WIN"
-		MatchResult.TeamTwo.QuarterOneResult = "LOSS"
-	} else if MatchResult.TeamOne.QuarterOneScore < MatchResult.TeamTwo.QuarterOneScore {
-		MatchResult.TeamOne.QuarterOneResult = "LOSS"
-		MatchResult.TeamTwo.QuarterOneResult = "WIN"
-	} else {
-		MatchResult.TeamOne.QuarterOneResult = "DRAW"
-		MatchResult.TeamTwo.QuarterOneResult = "DRAW"
-	}
-	updateQuarterResult(&MatchResult.TeamOne, &MatchResult.TeamTwo)
-
-	if tempTeamOneOutcome > tempTeamTwoOutcome {
-		MatchResult.TeamOne.MatchResult = "WIN"
-		MatchResult.TeamTwo.MatchResult = "LOSS"
-		MatchResult.WinningTeam = MatchResult.TeamOne.TeamName
-	} else if tempTeamOneOutcome < tempTeamTwoOutcome {
-		MatchResult.TeamOne.MatchResult = "LOSS"
-		MatchResult.TeamTwo.MatchResult = "WIN"
-		MatchResult.WinningTeam = MatchResult.TeamTwo.TeamName
-	} else {
-		// It's a draw
-		MatchResult.TeamOne.MatchResult = "DRAW"
-		MatchResult.TeamTwo.MatchResult = "DRAW"
-	}
-
-	// If no team, return nothing
-	if MatchResult.TeamTwo.TeamName == "" {
-		return MatchStats{}, nil
-	}
-
-	return MatchResult, nil
-}
-
-func getPageStats(url string, year string) ([]MatchStats, error) {
-	fmt.Println("Scraping: ")
-	fmt.Println(url)
-	endOfRelevantPage := false // Exiting before finals to ease scraping, can come back and add into data.
-
-	var sliceOMatchStats []MatchStats
-
-	c := colly.NewCollector()
-	var err error
-	c.OnHTML("table", func(e *colly.HTMLElement) {
-		var matchStats MatchStats
-		if endOfRelevantPage { // When we reach the final ladder 'year + season'
-			return
-		}
-
-		// TODO: Error checking here for tables that aren't match stats
-
-		if strings.Contains(e.Text, "Ladder") {
-			return
-		}
-
-		if strings.Contains(e.Text, year+" Ladder") {
-			endOfRelevantPage = true
-		}
-
-		// Every 2nd table on the page has the data we require
-		// Ignore round number + we start at round 1.
-		//fmt.Println(e.Text)
-		matchStats, err = ExtractMatchStats(e.Text, year)
+	for rows.Next() {
+		err := rows.Scan(&match_id, &team_one, &team_two, &winning_team, &season)
 		if err != nil {
-			// Handle error
-			return
+			return nil, err
 		}
-		// handle err for above method.
-
-		// Only add match stats if team names exist
-		if matchStats.TeamOne.TeamName != "" {
-			sliceOMatchStats = append(sliceOMatchStats, matchStats)
+		// Query team stats for each team in the match
+		teamOneStats, err := GetTeamStats(db, match_id, teamOne)
+		if err != nil {
+			return nil, err
 		}
-	})
-
-	if err != nil {
-		return nil, err
+		teamTwoStats, err := GetTeamStats(db, match_id, teamTwo)
+		if err != nil {
+			return nil, err
+		}
+		// Construct MatchStats struct
+		matchData := MatchStats{
+			MatchID:     match_id,
+			TeamOne:     teamOneStats,
+			TeamTwo:     teamTwoStats,
+			WinningTeam: winning_team,
+			Season:      season,
+		}
+		data = append(data, matchData)
 	}
 
-	if err := c.Visit(url); err != nil {
-		return nil, err
-	}
+	//fmt.Println(data)
+	return data, nil
+}
 
-	return sliceOMatchStats, nil
+// First iteration of DB stats querying
+func fakeMain() {
+	//// Connect to DB
+	db := connectToDB()
+	teamOne := "Collingwood"
+
+	// Get all time team stats
+	allTimeTeamStats := getAllTeamStats(db, teamOne)
+	// all team stats for only last 5 years
+	allTeamStatsOfLast5Years := getOnlyLast5YearsOfTeamStats(allTimeTeamStats, 2022)
+	// Team wins at half time and loses game
+	allTimeTeamWinsSecondQAndLoses := getAllTimeTeamWinsXQuarterAndXOutcome(allTimeTeamStats, 2, "WIN", "LOSS")
+	// Team wins half time and wins game
+	allTimeTeamWinsSecondQAndWins := getAllTimeTeamWinsXQuarterAndXOutcome(allTimeTeamStats, 2, "WIN", "WIN")
+
+	// The search for MaxProb = Outcome of event and estimated odds.
+	// If odds are below bookie odds, then we know we have a high likelihood of +EV bets.
+	fmt.Println()
+	fmt.Printf("Collingwood wins half time and loses over 30 years: %+v", len(allTimeTeamWinsSecondQAndLoses))
+	fmt.Println()
+	fmt.Printf("Collingwood wins half time and wins over 30 years: %+v", len(allTimeTeamWinsSecondQAndWins))
+	fmt.Println()
+	fmt.Printf("Total collingwood games over last  30 years: %+v", len(allTimeTeamStats))
+	fmt.Println()
+	fmt.Printf("All time team stats of last 5 years count: %+v", len(allTeamStatsOfLast5Years))
+	fmt.Println()
+	fmt.Println()
+
+	// Disconnect DB
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.WithError(err).Warn("Failed to disconnect DB")
+		}
+	}(db) // Defer means run this when the wrapping function terminates
 }

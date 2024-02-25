@@ -24,7 +24,8 @@ func createTeamStatsDBTables(db *sql.DB) {
 		quarter_four_result TEXT,
 		match_result TEXT,
 		match_data TEXT,
-		final_score BIGINT
+		final_score BIGINT,
+		season BIGINT
 	);`
 
 	_, err := db.Exec(query) // Execute query against DB without returning any rows
