@@ -27,14 +27,14 @@ type GetTeamVsTeamResponseBody struct {
 	AllTimeTeamWinner                string
 	TeamOne                          string
 	G_TeamOneWinsHalfTimeButLoses    float64 // Versus Any Team Percentage
-	G_TeamOneLosesHalfTimeButWins    float64
+	G_TeamOneWinsHalfTimeAndWins     float64 // Versus Any Team Percentage
 	V_TeamOneWinsHalfTimeButLoses    float64 // Versus TeamTwo Percentage
-	V_TeamOneLosesHalfTimeButWins    float64 // Versus TeamTwo Percentage
+	V_TeamOneWinsHalfTimeAndWins     float64 // Versus TeamTwo Percentage
 	TeamTwo                          string
 	G_TeamTwoWinsHalfTimeButLoses    float64 // Versus Any Team Percentage
-	G_TeamTwoLosesHalfTimeButWins    float64
+	G_TeamTwoWinsHalfTimeAndWins     float64
 	V_TeamTwoWinsHalfTimeButLoses    float64 // Versus TeamTwo Percentage
-	V_TeamTwoLosesHalfTimeButWins    float64 // Versus TeamTwo Percentage
+	V_TeamTwoWinsHalfTimeAndWins     float64 // Versus TeamTwo Percentage
 	TotalGamesPlayedAgainstEachOther float64
 }
 
@@ -56,74 +56,64 @@ func (b TeamHandler) GetTeamVsTeam(w http.ResponseWriter, r *http.Request) {
 
 	// All Time TeamVsTeam stats average?
 	allTimeTeamVsTeam, err := getTeamVsTeamStats(b.DB, requestBody.TeamOne, requestBody.TeamTwo)
+	allTimeTeamVsTeamStats := getAllTimeTeamVSTeamQuarterStats(allTimeTeamVsTeam)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	tempTeamOneTally := 0.00
-	tempTeamTwoTally := 0.00
+	//tempTeamOneTally := 0.00
+	//tempTeamTwoTally := 0.00
 	totalTimesPlayedEachOther := 0.00
 
-	// 1. Get raining champ in team v team match-ups
-	for _, team := range allTimeTeamVsTeam {
-		totalTimesPlayedEachOther++
-		if team.WinningTeam == requestBody.TeamOne {
-			tempTeamOneTally++
-		} else if team.WinningTeam == requestBody.TeamTwo {
-			tempTeamTwoTally++
-		}
-	}
+	fmt.Println(allTimeTeamVsTeam)
 
-	if tempTeamOneTally > tempTeamTwoTally {
-		responseBody.AllTimeTeamWinRate = (tempTeamOneTally / totalTimesPlayedEachOther) * 100
-		responseBody.AllTimeTeamWinner = requestBody.TeamOne
-	} else if tempTeamOneTally < tempTeamTwoTally {
-		responseBody.AllTimeTeamWinRate = (tempTeamTwoTally / totalTimesPlayedEachOther) * 100
-		responseBody.AllTimeTeamWinner = requestBody.TeamTwo
-	} else {
-		responseBody.AllTimeTeamWinRate = 50.00
-		responseBody.AllTimeTeamWinner = "DRAW"
-	}
+	//if tempTeamOneTally > tempTeamTwoTally {
+	//	responseBody.AllTimeTeamWinRate = (tempTeamOneTally / totalTimesPlayedEachOther) * 100
+	//	responseBody.AllTimeTeamWinner = requestBody.TeamOne
+	//} else if tempTeamOneTally < tempTeamTwoTally {
+	//	responseBody.AllTimeTeamWinRate = (tempTeamTwoTally / totalTimesPlayedEachOther) * 100
+	//	responseBody.AllTimeTeamWinner = requestBody.TeamTwo
+	//} else {
+	//	responseBody.AllTimeTeamWinRate = 50.00
+	//	responseBody.AllTimeTeamWinner = "DRAW"
+	//}
 
 	responseBody.TotalGamesPlayedAgainstEachOther = totalTimesPlayedEachOther
 
 	// TEAM ONE
 	// All time team one stats
 	allTimeTeamOneStats := getAllTeamStatsFromDb(b.DB, requestBody.TeamOne)
-	fmt.Println()
-	fmt.Println(allTimeTeamOneStats)
-	fmt.Println()
-	// Team wins at half time and loses game
+	// Global Team wins at half time and loses game
 	allTimeTeamOneWinsSecondQAndLoses := getAllTimeTeamWinsXQuarterAndXOutcome(allTimeTeamOneStats, 2, "WIN", "LOSS")
-	// Team wins half time and wins game
+	// Global Team wins half time and wins game
 	allTimeTeamOneWinsSecondQAndWins := getAllTimeTeamWinsXQuarterAndXOutcome(allTimeTeamOneStats, 2, "WIN", "WIN")
-
-	// Totals - loses/wins halves but X
+	// Totals
 	totalTeamOneGamesEver := len(allTimeTeamOneStats)
-	fmt.Println()
-	fmt.Println("Total Games team one EVER")
-	fmt.Println(totalTeamOneGamesEver)
-	fmt.Println()
-	fmt.Println("teamOneWinsSecondQ")
-	fmt.Println(allTimeTeamOneWinsSecondQAndLoses)
-	fmt.Println()
-	fmt.Println("LosesSecondQ")
-	fmt.Println(allTimeTeamOneWinsSecondQAndLoses)
-	fmt.Println()
-	t1WinsHalfButLoses := (len(allTimeTeamOneWinsSecondQAndLoses) / totalTeamOneGamesEver) * 100
-	t1LosesHalfButWins := (len(allTimeTeamOneWinsSecondQAndWins) / totalTeamOneGamesEver) * 100
+	t1WinsHalfButLoses := (float64(len(allTimeTeamOneWinsSecondQAndLoses)) / float64(totalTeamOneGamesEver)) * 100
+	t1WinsHalfTimeAndWins := (float64(len(allTimeTeamOneWinsSecondQAndWins)) / float64(totalTeamOneGamesEver)) * 100
 
-	fmt.Println()
-	fmt.Println(t1WinsHalfButLoses)
-	fmt.Println()
-	fmt.Println(t1LosesHalfButWins)
-	fmt.Println()
-	responseBody.G_TeamOneWinsHalfTimeButLoses = float64(t1WinsHalfButLoses)
-	responseBody.G_TeamOneLosesHalfTimeButWins = float64(t1LosesHalfButWins)
+	// TEAM TWO
+	allTimeTeamTwoStats := getAllTeamStatsFromDb(b.DB, requestBody.TeamTwo)
+	// Global Team wins at half time and loses game
+	allTimeTeamTwoWinsSecondQAndLoses := getAllTimeTeamWinsXQuarterAndXOutcome(allTimeTeamTwoStats, 2, "WIN", "LOSS")
+	// Global Team wins half time and wins game
+	allTimeTeamTwoWinsSecondQAndWins := getAllTimeTeamWinsXQuarterAndXOutcome(allTimeTeamTwoStats, 2, "WIN", "WIN")
+	// Totals
+	totalTeamTwoGamesEver := len(allTimeTeamTwoStats)
+	t2WinsHalfButLoses := (float64(len(allTimeTeamTwoWinsSecondQAndLoses)) / float64(totalTeamTwoGamesEver)) * 100
+	t2WinsHalfTimeAndWins := (float64(len(allTimeTeamTwoWinsSecondQAndWins)) / float64(totalTeamTwoGamesEver)) * 100
 
-	//V_TeamOneWinsHalfTimeButLoses    float64 // Versus TeamTwo Percentage
-	//V_TeamOneLosesHalfTimeButWins
+	// TEAM VS TEAM
+	responseBody.V_TeamOneWinsHalfTimeAndWins = allTimeTeamVsTeamStats.TotalTeamOneWinsHalfTimeAndWins
+	responseBody.V_TeamOneWinsHalfTimeButLoses = allTimeTeamVsTeamStats.TotalTeamOneWinsHalfTimeButLoses
+	responseBody.V_TeamTwoWinsHalfTimeAndWins = allTimeTeamVsTeamStats.TotalTeamTwoWinsHalfTimeAndWins
+	responseBody.V_TeamTwoWinsHalfTimeButLoses = allTimeTeamVsTeamStats.TotalTeamTwoWinsHalfTimeButLoses
+
+	responseBody.G_TeamOneWinsHalfTimeButLoses = t1WinsHalfButLoses
+	responseBody.G_TeamOneWinsHalfTimeAndWins = t1WinsHalfTimeAndWins
+	responseBody.G_TeamTwoWinsHalfTimeButLoses = t2WinsHalfButLoses
+	responseBody.G_TeamTwoWinsHalfTimeAndWins = t2WinsHalfTimeAndWins
 
 	// TODO: TEAM TWO
 	// ....

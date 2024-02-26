@@ -319,6 +319,50 @@ func getAllTeamStatsFromDb(db *sql.DB, teamName string) []TeamStatsWithMatchId {
 	return data
 }
 
+type TeamVSTeamStats struct {
+	TotalTimesPlayed                 float64
+	TotalTeamOneWins                 int
+	TotalTeamTwoWins                 int
+	TotalDraws                       int
+	TotalTeamOneWinsHalfTimeButLoses float64
+	TotalTeamOneWinsHalfTimeAndWins  float64
+	TotalTeamTwoWinsHalfTimeButLoses float64
+	TotalTeamTwoWinsHalfTimeAndWins  float64
+}
+
+func getAllTimeTeamVSTeamQuarterStats(matchStats []MatchStats) TeamVSTeamStats {
+	var teamVsTeamStats TeamVSTeamStats
+
+	for _, match := range matchStats {
+		teamVsTeamStats.TotalTimesPlayed++
+		if match.WinningTeam == match.TeamOne.TeamName {
+			teamVsTeamStats.TotalTeamOneWins++
+		} else if match.WinningTeam == match.TeamTwo.TeamName {
+			teamVsTeamStats.TotalTeamTwoWins++
+		} else {
+			// draw
+			teamVsTeamStats.TotalDraws++
+		}
+
+		if GetQuarterResult(match.TeamOne, 2) == "WIN" && match.TeamOne.MatchResult == "WIN" {
+			teamVsTeamStats.TotalTeamOneWinsHalfTimeAndWins++
+		} else if GetQuarterResult(match.TeamOne, 2) == "WIN" && match.TeamOne.MatchResult == "LOSS" {
+			teamVsTeamStats.TotalTeamOneWinsHalfTimeButLoses++
+		} else if GetQuarterResult(match.TeamTwo, 2) == "WIN" && match.TeamTwo.MatchResult == "WIN" {
+			teamVsTeamStats.TotalTeamTwoWinsHalfTimeAndWins++
+		} else if GetQuarterResult(match.TeamOne, 2) == "WIN" && match.TeamOne.MatchResult == "LOSS" {
+			teamVsTeamStats.TotalTeamTwoWinsHalfTimeButLoses++
+		}
+	}
+
+	teamVsTeamStats.TotalTeamOneWinsHalfTimeAndWins = (teamVsTeamStats.TotalTeamOneWinsHalfTimeAndWins / teamVsTeamStats.TotalTimesPlayed) * 100
+	teamVsTeamStats.TotalTeamOneWinsHalfTimeButLoses = (teamVsTeamStats.TotalTeamOneWinsHalfTimeButLoses / teamVsTeamStats.TotalTimesPlayed) * 100
+	teamVsTeamStats.TotalTeamTwoWinsHalfTimeAndWins = (teamVsTeamStats.TotalTeamTwoWinsHalfTimeAndWins / teamVsTeamStats.TotalTimesPlayed) * 100
+	teamVsTeamStats.TotalTeamTwoWinsHalfTimeButLoses = (teamVsTeamStats.TotalTeamTwoWinsHalfTimeButLoses / teamVsTeamStats.TotalTimesPlayed) * 100
+
+	return teamVsTeamStats
+}
+
 func getAllTimeTeamWinsXQuarterAndXOutcome(teamStatsList []TeamStatsWithMatchId, quarter int, quarterResult string, matchResult string) []TeamStatsWithMatchId {
 	var filteredTeamList []TeamStatsWithMatchId
 
