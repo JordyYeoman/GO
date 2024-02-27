@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi"
 	"net/http"
 )
@@ -62,25 +61,6 @@ func (b TeamHandler) GetTeamVsTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//tempTeamOneTally := 0.00
-	//tempTeamTwoTally := 0.00
-	totalTimesPlayedEachOther := 0.00
-
-	fmt.Println(allTimeTeamVsTeam)
-
-	//if tempTeamOneTally > tempTeamTwoTally {
-	//	responseBody.AllTimeTeamWinRate = (tempTeamOneTally / totalTimesPlayedEachOther) * 100
-	//	responseBody.AllTimeTeamWinner = requestBody.TeamOne
-	//} else if tempTeamOneTally < tempTeamTwoTally {
-	//	responseBody.AllTimeTeamWinRate = (tempTeamTwoTally / totalTimesPlayedEachOther) * 100
-	//	responseBody.AllTimeTeamWinner = requestBody.TeamTwo
-	//} else {
-	//	responseBody.AllTimeTeamWinRate = 50.00
-	//	responseBody.AllTimeTeamWinner = "DRAW"
-	//}
-
-	responseBody.TotalGamesPlayedAgainstEachOther = totalTimesPlayedEachOther
-
 	// TEAM ONE
 	// All time team one stats
 	allTimeTeamOneStats := getAllTeamStatsFromDb(b.DB, requestBody.TeamOne)
@@ -115,9 +95,7 @@ func (b TeamHandler) GetTeamVsTeam(w http.ResponseWriter, r *http.Request) {
 	responseBody.G_TeamTwoWinsHalfTimeButLoses = t2WinsHalfButLoses
 	responseBody.G_TeamTwoWinsHalfTimeAndWins = t2WinsHalfTimeAndWins
 
-	// TODO: TEAM TWO
-	// ....
-	// ...
+	responseBody.TotalGamesPlayedAgainstEachOther = allTimeTeamVsTeamStats.TotalTimesPlayed
 
 	// Finally respond with payload
 	respondWithJSON(w, 200, responseBody)

@@ -350,7 +350,7 @@ func getAllTimeTeamVSTeamQuarterStats(matchStats []MatchStats) TeamVSTeamStats {
 			teamVsTeamStats.TotalTeamOneWinsHalfTimeButLoses++
 		} else if GetQuarterResult(match.TeamTwo, 2) == "WIN" && match.TeamTwo.MatchResult == "WIN" {
 			teamVsTeamStats.TotalTeamTwoWinsHalfTimeAndWins++
-		} else if GetQuarterResult(match.TeamOne, 2) == "WIN" && match.TeamOne.MatchResult == "LOSS" {
+		} else if GetQuarterResult(match.TeamTwo, 2) == "WIN" && match.TeamTwo.MatchResult == "LOSS" {
 			teamVsTeamStats.TotalTeamTwoWinsHalfTimeButLoses++
 		}
 	}
