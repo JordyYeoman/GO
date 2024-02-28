@@ -319,10 +319,18 @@ func getAllTeamStatsFromDb(db *sql.DB, teamName string) []TeamStatsWithMatchId {
 type TeamVSTeamStats struct {
 	TotalTimesPlayed                 float64
 	TotalTeamOneWins                 int
+	TeamOneQuarterOneWinPercent      float64
+	TeamOneQuarterTwoWinPercent      float64
+	TeamOneQuarterThreeWinPercent    float64
+	TeamOneQuarterFourWinPercent     float64
 	TotalTeamTwoWins                 int
 	TotalDraws                       int
 	TotalTeamOneWinsHalfTimeButLoses float64
 	TotalTeamOneWinsHalfTimeAndWins  float64
+	TeamTwoQuarterOneWinPercent      float64
+	TeamTwoQuarterTwoWinPercent      float64
+	TeamTwoQuarterThreeWinPercent    float64
+	TeamTwoQuarterFourWinPercent     float64
 	TotalTeamTwoWinsHalfTimeButLoses float64
 	TotalTeamTwoWinsHalfTimeAndWins  float64
 }
@@ -341,6 +349,36 @@ func getAllTimeTeamVSTeamQuarterStats(matchStats []MatchStats) TeamVSTeamStats {
 			teamVsTeamStats.TotalDraws++
 		}
 
+		// Get quarters counted
+		// TEAM ONE
+		if GetQuarterResult(match.TeamOne, 1) == "WIN" {
+			teamVsTeamStats.TeamOneQuarterOneWinPercent++
+		}
+		if GetQuarterResult(match.TeamOne, 2) == "WIN" {
+			teamVsTeamStats.TeamOneQuarterTwoWinPercent++
+		}
+		if GetQuarterResult(match.TeamOne, 3) == "WIN" {
+			teamVsTeamStats.TeamOneQuarterThreeWinPercent++
+		}
+		if GetQuarterResult(match.TeamOne, 4) == "WIN" {
+			teamVsTeamStats.TeamOneQuarterFourWinPercent++
+		}
+
+		// TEAM TWO
+		if GetQuarterResult(match.TeamTwo, 1) == "WIN" {
+			teamVsTeamStats.TeamTwoQuarterOneWinPercent++
+		}
+		if GetQuarterResult(match.TeamTwo, 2) == "WIN" {
+			teamVsTeamStats.TeamTwoQuarterTwoWinPercent++
+		}
+		if GetQuarterResult(match.TeamTwo, 3) == "WIN" {
+			teamVsTeamStats.TeamTwoQuarterThreeWinPercent++
+		}
+		if GetQuarterResult(match.TeamTwo, 4) == "WIN" {
+			teamVsTeamStats.TeamOneQuarterFourWinPercent++
+		}
+
+		// Half-time team results
 		if GetQuarterResult(match.TeamOne, 2) == "WIN" && match.TeamOne.MatchResult == "WIN" {
 			teamVsTeamStats.TotalTeamOneWinsHalfTimeAndWins++
 		} else if GetQuarterResult(match.TeamOne, 2) == "WIN" && match.TeamOne.MatchResult == "LOSS" {
@@ -352,6 +390,18 @@ func getAllTimeTeamVSTeamQuarterStats(matchStats []MatchStats) TeamVSTeamStats {
 		}
 	}
 
+	// Tally averages for quarters
+	teamVsTeamStats.TeamOneQuarterOneWinPercent = (teamVsTeamStats.TeamOneQuarterOneWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+	teamVsTeamStats.TeamOneQuarterOneWinPercent = (teamVsTeamStats.TeamOneQuarterTwoWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+	teamVsTeamStats.TeamOneQuarterOneWinPercent = (teamVsTeamStats.TeamOneQuarterThreeWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+	teamVsTeamStats.TeamOneQuarterOneWinPercent = (teamVsTeamStats.TeamOneQuarterFourWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+
+	teamVsTeamStats.TeamTwoQuarterOneWinPercent = (teamVsTeamStats.TeamTwoQuarterOneWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+	teamVsTeamStats.TeamTwoQuarterOneWinPercent = (teamVsTeamStats.TeamTwoQuarterTwoWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+	teamVsTeamStats.TeamTwoQuarterOneWinPercent = (teamVsTeamStats.TeamTwoQuarterThreeWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+	teamVsTeamStats.TeamTwoQuarterOneWinPercent = (teamVsTeamStats.TeamTwoQuarterFourWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+
+	// Tally half time win rate averages
 	teamVsTeamStats.TotalTeamOneWinsHalfTimeAndWins = (teamVsTeamStats.TotalTeamOneWinsHalfTimeAndWins / teamVsTeamStats.TotalTimesPlayed) * 100
 	teamVsTeamStats.TotalTeamOneWinsHalfTimeButLoses = (teamVsTeamStats.TotalTeamOneWinsHalfTimeButLoses / teamVsTeamStats.TotalTimesPlayed) * 100
 	teamVsTeamStats.TotalTeamTwoWinsHalfTimeAndWins = (teamVsTeamStats.TotalTeamTwoWinsHalfTimeAndWins / teamVsTeamStats.TotalTimesPlayed) * 100

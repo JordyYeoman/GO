@@ -39,6 +39,10 @@ type GetTeamVsTeamResponseBody struct {
 	G_TeamOneWinsHalfTimeAndWins     float64 // Versus Any Team Percentage
 	V_TeamOneWinsHalfTimeButLoses    float64 // Versus TeamTwo Percentage
 	V_TeamOneWinsHalfTimeAndWins     float64 // Versus TeamTwo Percentage
+	V_TeamOneQuarterOneWins          float64
+	V_TeamOneQuarterTwoWins          float64
+	V_TeamOneQuarterThreeWins        float64
+	V_TeamOneQuarterFourWins         float64
 	TeamTwo                          string
 	TeamTwoWins                      int
 	G_TeamTwoWinsHalfTimeButLoses    float64 // Versus Any Team Percentage
@@ -46,6 +50,10 @@ type GetTeamVsTeamResponseBody struct {
 	V_TeamTwoWinsHalfTimeButLoses    float64 // Versus TeamTwo Percentage
 	V_TeamTwoWinsHalfTimeAndWins     float64 // Versus TeamTwo Percentage
 	TotalGamesPlayedAgainstEachOther float64
+	V_TeamTwoQuarterOneWins          float64
+	V_TeamTwoQuarterTwoWins          float64
+	V_TeamTwoQuarterThreeWins        float64
+	V_TeamTwoQuarterFourWins         float64
 }
 
 func (b TeamHandler) GetTeamVsTeam(w http.ResponseWriter, r *http.Request) {
@@ -98,17 +106,38 @@ func (b TeamHandler) GetTeamVsTeam(w http.ResponseWriter, r *http.Request) {
 	// TEAM VS TEAM
 	responseBody.V_TeamOneWinsHalfTimeAndWins = allTimeTeamVsTeamStats.TotalTeamOneWinsHalfTimeAndWins
 	responseBody.V_TeamOneWinsHalfTimeButLoses = allTimeTeamVsTeamStats.TotalTeamOneWinsHalfTimeButLoses
-	responseBody.V_TeamTwoWinsHalfTimeAndWins = allTimeTeamVsTeamStats.TotalTeamTwoWinsHalfTimeAndWins
-	responseBody.V_TeamTwoWinsHalfTimeButLoses = allTimeTeamVsTeamStats.TotalTeamTwoWinsHalfTimeButLoses
 	responseBody.G_TeamOneWinsHalfTimeButLoses = t1WinsHalfButLoses
 	responseBody.G_TeamOneWinsHalfTimeAndWins = t1WinsHalfTimeAndWins
+	responseBody.V_TeamOneQuarterOneWins = allTimeTeamVsTeamStats.TeamOneQuarterOneWinPercent
+	responseBody.V_TeamOneQuarterTwoWins = allTimeTeamVsTeamStats.TeamOneQuarterTwoWinPercent
+	responseBody.V_TeamOneQuarterThreeWins = allTimeTeamVsTeamStats.TeamOneQuarterThreeWinPercent
+	responseBody.V_TeamOneQuarterFourWins = allTimeTeamVsTeamStats.TeamOneQuarterFourWinPercent
+	responseBody.TeamOneWins = allTimeTeamVsTeamStats.TotalTeamOneWins
+
 	responseBody.G_TeamTwoWinsHalfTimeButLoses = t2WinsHalfButLoses
 	responseBody.G_TeamTwoWinsHalfTimeAndWins = t2WinsHalfTimeAndWins
+	responseBody.V_TeamTwoQuarterOneWins = allTimeTeamVsTeamStats.TeamTwoQuarterOneWinPercent
+	responseBody.V_TeamTwoQuarterTwoWins = allTimeTeamVsTeamStats.TeamTwoQuarterTwoWinPercent
+	responseBody.V_TeamTwoQuarterThreeWins = allTimeTeamVsTeamStats.TeamTwoQuarterThreeWinPercent
+	responseBody.V_TeamTwoQuarterFourWins = allTimeTeamVsTeamStats.TeamTwoQuarterFourWinPercent
+	responseBody.TeamTwoWins = allTimeTeamVsTeamStats.TotalTeamTwoWins
+	responseBody.V_TeamTwoWinsHalfTimeAndWins = allTimeTeamVsTeamStats.TotalTeamTwoWinsHalfTimeAndWins
+	responseBody.V_TeamTwoWinsHalfTimeButLoses = allTimeTeamVsTeamStats.TotalTeamTwoWinsHalfTimeButLoses
+
+	responseBody.Draws = allTimeTeamVsTeamStats.TotalDraws
 	responseBody.TotalGamesPlayedAgainstEachOther = allTimeTeamVsTeamStats.TotalTimesPlayed
 
-	responseBody.TeamOneWins = allTimeTeamVsTeamStats.TotalTeamOneWins
-	responseBody.TeamTwoWins = allTimeTeamVsTeamStats.TotalTeamTwoWins
-	responseBody.Draws = allTimeTeamVsTeamStats.TotalDraws
+	// Get all time team winner
+	if responseBody.TeamOneWins > responseBody.TeamTwoWins {
+		responseBody.AllTimeTeamWinner = requestBody.TeamOne
+		responseBody.AllTimeTeamWinRate = (float64(responseBody.TeamOneWins) / responseBody.TotalGamesPlayedAgainstEachOther) * 100
+	} else if responseBody.TeamOneWins < responseBody.TeamTwoWins {
+		responseBody.AllTimeTeamWinner = requestBody.TeamTwo
+		responseBody.AllTimeTeamWinRate = (float64(responseBody.TeamTwoWins) / responseBody.TotalGamesPlayedAgainstEachOther) * 100
+	} else {
+		responseBody.AllTimeTeamWinner = "DRAW" //
+		responseBody.AllTimeTeamWinRate = 0
+	}
 
 	// Finally respond with payload
 	respondWithJSON(w, 200, responseBody)
