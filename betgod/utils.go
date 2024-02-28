@@ -200,9 +200,6 @@ func ExtractTeamStats(line, team string) TeamStats {
 		}
 	}
 
-	//fmt.Println("==========")
-	//fmt.Println(stats)
-	//fmt.Println("==========")
 	return stats
 }
 
@@ -426,43 +423,6 @@ func getTeamVsTeamStats(db *sql.DB, teamOne string, teamTwo string) ([]MatchStat
 
 	//fmt.Println(data)
 	return data, nil
-}
-
-// First iteration of DB stats querying
-func fakeMain() {
-	//// Connect to DB
-	db := connectToDB()
-	teamOne := "Collingwood"
-
-	// Get all time team stats
-	allTimeTeamStats := getAllTeamStatsFromDb(db, teamOne)
-	// all team stats for only last 5 years
-	allTeamStatsOfLast5Years := getOnlyLast5YearsOfTeamStats(allTimeTeamStats, 2022)
-	// Team wins at half time and loses game
-	allTimeTeamWinsSecondQAndLoses := getAllTimeTeamWinsXQuarterAndXOutcome(allTimeTeamStats, 2, "WIN", "LOSS")
-	// Team wins half time and wins game
-	allTimeTeamWinsSecondQAndWins := getAllTimeTeamWinsXQuarterAndXOutcome(allTimeTeamStats, 2, "WIN", "WIN")
-
-	// The search for MaxProb = Outcome of event and estimated odds.
-	// If odds are below bookie odds, then we know we have a high likelihood of +EV bets.
-	fmt.Println()
-	fmt.Printf("Collingwood wins half time and loses over 30 years: %+v", len(allTimeTeamWinsSecondQAndLoses))
-	fmt.Println()
-	fmt.Printf("Collingwood wins half time and wins over 30 years: %+v", len(allTimeTeamWinsSecondQAndWins))
-	fmt.Println()
-	fmt.Printf("Total collingwood games over last  30 years: %+v", len(allTimeTeamStats))
-	fmt.Println()
-	fmt.Printf("All time team stats of last 5 years count: %+v", len(allTeamStatsOfLast5Years))
-	fmt.Println()
-	fmt.Println()
-
-	// Disconnect DB
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			log.WithError(err).Warn("Failed to disconnect DB")
-		}
-	}(db) // Defer means run this when the wrapping function terminates
 }
 
 // Generic method to handle responses requiring json - all of em? lel

@@ -16,6 +16,14 @@ type GetAllTimeTeamStatsRequestBody struct {
 	TeamName string
 }
 
+// Return type for all time team stats
+type AllTimeTeamStatsAbbrv struct {
+	TeamName             string
+	AllTimeWinRate       float64
+	TotalGamesPlayed     int
+	TotalSeasonsCompared int
+}
+
 type GetTeamVsTeamRequestBody struct {
 	TeamOne string
 	TeamTwo string
@@ -118,9 +126,48 @@ func (b TeamHandler) GetAllTimeTeamStats(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	testTeam := getAllTeamStatsFromDb(b.DB, requestBody.TeamName)
+	team := getAllTeamStatsFromDb(b.DB, requestBody.TeamName)
 
-	respondWithJSON(w, 200, testTeam)
+	respondWithJSON(w, 200, team)
+}
+
+func (b TeamHandler) GetAllTimeTeamAbbrvStats(w http.ResponseWriter, r *http.Request) {
+	// Parse the request body
+	var requestBody GetAllTimeTeamStatsRequestBody
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// No team name supplied
+	if requestBody.TeamName == "" {
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(404) // setting response status code
+		w.Write([]byte("Team name required"))
+		return
+	}
+
+	teamStats := getAllTeamStatsFromDb(b.DB, requestBody.TeamName)
+
+	allTimeTeamStats := AllTimeTeamStatsAbbrv{}
+	allTimeTeamStats.TeamName = requestBody.TeamName
+
+	totalWins := 0.0
+	totalPlayed := 0
+
+	// All time win rate
+	for _, t := range teamStats {
+		totalPlayed++
+		if t.MatchResult == "WIN" {
+			totalWins++
+		}
+	}
+
+	allTimeTeamStats.TotalGamesPlayed = totalPlayed
+	allTimeTeamStats.AllTimeWinRate = (totalWins / float64(totalPlayed)) * 100
+
+	respondWithJSON(w, 200, allTimeTeamStats)
 }
 
 func (b TeamHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -140,6 +187,7 @@ func TeamRoutes(db *sql.DB) chi.Router {
 	}
 	r.Get("/allTimeTeamStats", teamHandler.GetAllTimeTeamStats)
 	r.Get("/teamVsTeam", teamHandler.GetTeamVsTeam)
+	r.Get("/allTimeTeamStatsAbbrv", teamHandler.GetAllTimeTeamAbbrvStats)
 	r.Get("/list", teamHandler.List)
 	return r
 }

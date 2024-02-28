@@ -11,10 +11,10 @@ import (
 )
 
 func main() {
-	////Connect to DB
+	//Connect to DB
 	db := connectToDB()
 
-	// Create routes for API
+	// Setup routes for API
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts

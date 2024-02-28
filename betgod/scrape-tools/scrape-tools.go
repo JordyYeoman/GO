@@ -309,7 +309,7 @@ package main
 //	query := `CREATE TABLE IF NOT EXISTS team_stats (
 //		id INT AUTO_INCREMENT PRIMARY KEY,
 //		match_id TEXT,
-//  	team_name TEXT,
+// 	team_name TEXT,
 //		quarter_one_score BIGINT,
 //		quarter_one_result TEXT,
 //		quarter_one_data TEXT,
@@ -337,7 +337,7 @@ package main
 //func createMatchStatsDBTables(db *sql.DB) {
 //	query := `CREATE TABLE IF NOT EXISTS match_stats (
 //		id INT AUTO_INCREMENT PRIMARY KEY,
-//   	match_id TEXT,
+//  	match_id TEXT,
 //		team_one VARCHAR(255),
 //		team_two VARCHAR(255),
 //		winning_team TEXT,
