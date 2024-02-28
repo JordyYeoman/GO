@@ -32,12 +32,15 @@ type GetTeamVsTeamRequestBody struct {
 type GetTeamVsTeamResponseBody struct {
 	AllTimeTeamWinRate               float64 // Percentage
 	AllTimeTeamWinner                string
+	Draws                            int
 	TeamOne                          string
+	TeamOneWins                      int
 	G_TeamOneWinsHalfTimeButLoses    float64 // Versus Any Team Percentage
 	G_TeamOneWinsHalfTimeAndWins     float64 // Versus Any Team Percentage
 	V_TeamOneWinsHalfTimeButLoses    float64 // Versus TeamTwo Percentage
 	V_TeamOneWinsHalfTimeAndWins     float64 // Versus TeamTwo Percentage
 	TeamTwo                          string
+	TeamTwoWins                      int
 	G_TeamTwoWinsHalfTimeButLoses    float64 // Versus Any Team Percentage
 	G_TeamTwoWinsHalfTimeAndWins     float64
 	V_TeamTwoWinsHalfTimeButLoses    float64 // Versus TeamTwo Percentage
@@ -97,13 +100,15 @@ func (b TeamHandler) GetTeamVsTeam(w http.ResponseWriter, r *http.Request) {
 	responseBody.V_TeamOneWinsHalfTimeButLoses = allTimeTeamVsTeamStats.TotalTeamOneWinsHalfTimeButLoses
 	responseBody.V_TeamTwoWinsHalfTimeAndWins = allTimeTeamVsTeamStats.TotalTeamTwoWinsHalfTimeAndWins
 	responseBody.V_TeamTwoWinsHalfTimeButLoses = allTimeTeamVsTeamStats.TotalTeamTwoWinsHalfTimeButLoses
-
 	responseBody.G_TeamOneWinsHalfTimeButLoses = t1WinsHalfButLoses
 	responseBody.G_TeamOneWinsHalfTimeAndWins = t1WinsHalfTimeAndWins
 	responseBody.G_TeamTwoWinsHalfTimeButLoses = t2WinsHalfButLoses
 	responseBody.G_TeamTwoWinsHalfTimeAndWins = t2WinsHalfTimeAndWins
-
 	responseBody.TotalGamesPlayedAgainstEachOther = allTimeTeamVsTeamStats.TotalTimesPlayed
+
+	responseBody.TeamOneWins = allTimeTeamVsTeamStats.TotalTeamOneWins
+	responseBody.TeamTwoWins = allTimeTeamVsTeamStats.TotalTeamTwoWins
+	responseBody.Draws = allTimeTeamVsTeamStats.TotalDraws
 
 	// Finally respond with payload
 	respondWithJSON(w, 200, responseBody)
