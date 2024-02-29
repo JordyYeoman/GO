@@ -65,7 +65,7 @@ func GetMatchData(sliceOfStrings []string) string {
 }
 
 func insertTeamStats(db *sql.DB, teamStats TeamStatsWithMatchId) int {
-	query := "INSERT INTO team_stats (match_id, team_name, quarter_one_score, quarter_one_result, quarter_one_data, quarter_two_score, quarter_two_result, quarter_two_data, quarter_three_score, quarter_three_data, quarter_three_result, quarter_four_score, quarter_four_data, quarter_four_result, match_result, match_data, final_score, season) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"
+	query := "INSERT INTO team_stats (match_id, team_name, quarter_one_score, quarter_one_result, quarter_one_data, quarter_two_score, quarter_two_result, quarter_two_data, quarter_three_score, quarter_three_result, quarter_three_data, quarter_four_score, quarter_four_result, quarter_four_data, match_result, match_data, final_score, season) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"
 
 	result, err := db.Exec(query, teamStats.MatchID, teamStats.TeamName, teamStats.QuarterOneScore, teamStats.QuarterOneResult, teamStats.QuarterOneData, teamStats.QuarterTwoScore, teamStats.QuarterTwoResult, teamStats.QuarterTwoData, teamStats.QuarterThreeScore, teamStats.QuarterThreeResult, teamStats.QuarterThreeData, teamStats.QuarterFourScore, teamStats.QuarterFourResult, teamStats.QuarterFourData, teamStats.MatchResult, teamStats.MatchData, teamStats.FinalScore, teamStats.Season)
 	if err != nil {
@@ -364,6 +364,15 @@ func getAllTimeTeamVSTeamQuarterStats(matchStats []MatchStats) TeamVSTeamStats {
 			teamVsTeamStats.TeamOneQuarterFourWinPercent++
 		}
 
+		fmt.Println("")
+		fmt.Println("Quarter 3")
+		fmt.Println(match.TeamTwo.QuarterThreeResult)
+		fmt.Println(match.TeamTwo.QuarterThreeScore)
+		fmt.Println(match.TeamTwo.QuarterThreeData)
+		fmt.Println(GetQuarterResult(match.TeamTwo, 3))
+		fmt.Println(GetQuarterResult(match.TeamTwo, 4))
+		fmt.Println("")
+
 		// TEAM TWO
 		if GetQuarterResult(match.TeamTwo, 1) == "WIN" {
 			teamVsTeamStats.TeamTwoQuarterOneWinPercent++
@@ -375,7 +384,7 @@ func getAllTimeTeamVSTeamQuarterStats(matchStats []MatchStats) TeamVSTeamStats {
 			teamVsTeamStats.TeamTwoQuarterThreeWinPercent++
 		}
 		if GetQuarterResult(match.TeamTwo, 4) == "WIN" {
-			teamVsTeamStats.TeamOneQuarterFourWinPercent++
+			teamVsTeamStats.TeamTwoQuarterFourWinPercent++
 		}
 
 		// Half-time team results
@@ -392,14 +401,14 @@ func getAllTimeTeamVSTeamQuarterStats(matchStats []MatchStats) TeamVSTeamStats {
 
 	// Tally averages for quarters
 	teamVsTeamStats.TeamOneQuarterOneWinPercent = (teamVsTeamStats.TeamOneQuarterOneWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
-	teamVsTeamStats.TeamOneQuarterOneWinPercent = (teamVsTeamStats.TeamOneQuarterTwoWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
-	teamVsTeamStats.TeamOneQuarterOneWinPercent = (teamVsTeamStats.TeamOneQuarterThreeWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
-	teamVsTeamStats.TeamOneQuarterOneWinPercent = (teamVsTeamStats.TeamOneQuarterFourWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+	teamVsTeamStats.TeamOneQuarterTwoWinPercent = (teamVsTeamStats.TeamOneQuarterTwoWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+	teamVsTeamStats.TeamOneQuarterThreeWinPercent = (teamVsTeamStats.TeamOneQuarterThreeWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+	teamVsTeamStats.TeamOneQuarterFourWinPercent = (teamVsTeamStats.TeamOneQuarterFourWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
 
 	teamVsTeamStats.TeamTwoQuarterOneWinPercent = (teamVsTeamStats.TeamTwoQuarterOneWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
-	teamVsTeamStats.TeamTwoQuarterOneWinPercent = (teamVsTeamStats.TeamTwoQuarterTwoWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
-	teamVsTeamStats.TeamTwoQuarterOneWinPercent = (teamVsTeamStats.TeamTwoQuarterThreeWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
-	teamVsTeamStats.TeamTwoQuarterOneWinPercent = (teamVsTeamStats.TeamTwoQuarterFourWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+	teamVsTeamStats.TeamTwoQuarterTwoWinPercent = (teamVsTeamStats.TeamTwoQuarterTwoWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+	teamVsTeamStats.TeamTwoQuarterThreeWinPercent = (teamVsTeamStats.TeamTwoQuarterThreeWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
+	teamVsTeamStats.TeamTwoQuarterFourWinPercent = (teamVsTeamStats.TeamTwoQuarterFourWinPercent / (teamVsTeamStats.TotalTimesPlayed * 4)) * 100
 
 	// Tally half time win rate averages
 	teamVsTeamStats.TotalTeamOneWinsHalfTimeAndWins = (teamVsTeamStats.TotalTeamOneWinsHalfTimeAndWins / teamVsTeamStats.TotalTimesPlayed) * 100

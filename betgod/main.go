@@ -36,7 +36,7 @@ func main() {
 	// Spin up server
 	http.ListenAndServe(":3000", router)
 
-	// Disconnect DB
+	//Disconnect DB
 	defer func(db *sql.DB) {
 		err := db.Close()
 		if err != nil {
