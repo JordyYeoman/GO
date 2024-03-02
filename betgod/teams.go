@@ -186,6 +186,7 @@ func (b TeamHandler) GetAllTimeTeamAbbrvStats(w http.ResponseWriter, r *http.Req
 
 	allTimeTeamStats := AllTimeTeamStatsAbbrv{}
 	allTimeTeamStats.TeamName = requestBody.TeamName
+	seasonsIteratedOver := map[int]bool{}
 
 	totalWins := 0.0
 	totalPlayed := 0
@@ -193,6 +194,8 @@ func (b TeamHandler) GetAllTimeTeamAbbrvStats(w http.ResponseWriter, r *http.Req
 	// All time win rate
 	for _, t := range teamStats {
 		totalPlayed++
+		// Add season to map
+		seasonsIteratedOver[t.Season] = true
 		if t.MatchResult == "WIN" {
 			totalWins++
 		}
@@ -200,6 +203,7 @@ func (b TeamHandler) GetAllTimeTeamAbbrvStats(w http.ResponseWriter, r *http.Req
 
 	allTimeTeamStats.TotalGamesPlayed = totalPlayed
 	allTimeTeamStats.AllTimeWinRate = (totalWins / float64(totalPlayed)) * 100
+	allTimeTeamStats.TotalSeasonsCompared = len(seasonsIteratedOver)
 
 	respondWithJSON(w, 200, allTimeTeamStats)
 }
