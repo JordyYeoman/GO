@@ -10,6 +10,8 @@ import (
 	"net/http"
 )
 
+// TODO: Add recent season performance vs global performance
+
 func main() {
 	//Connect to DB
 	db := connectToDB()
