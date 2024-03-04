@@ -29,31 +29,45 @@ type GetTeamVsTeamRequestBody struct {
 	TeamTwo string
 }
 
+type IndividualTeamStats struct {
+	G_AllTime_TeamWinsHalfTimeButLoses      float64 // Versus Any Team Percentage
+	G_AllTime_TeamWinsHalfTimeAndWins       float64 // Versus Any Team Percentage
+	V_AllTime_TeamWinsHalfTimeButLoses      float64 // Versus TeamTwo Percentage
+	V_AllTime_TeamWinsHalfTimeAndWins       float64 // Versus TeamTwo Percentage
+	V_AllTime_TeamQuarterOneWinPercentage   float64
+	V_AllTime_TeamQuarterTwoWinPercentage   float64
+	V_AllTime_TeamQuarterThreeWinPercentage float64
+	V_AllTime_TeamQuarterFourWinPercentage  float64
+	// Last 3 Years
+	G_Last3Years_TeamWinsHalfTimeButLoses      float64
+	G_Last3Years_TeamWinsHalfTimeAndWins       float64
+	V_Last3Years_TeamWinsHalfTimeButLoses      float64
+	V_Last3Years_TeamWinsHalfTimeAndWins       float64
+	V_Last3Years_TeamQuarterOneWinPercentage   float64
+	V_Last3Years_TeamQuarterTwoWinPercentage   float64
+	V_Last3Years_TeamQuarterThreeWinPercentage float64
+	V_Last3Years_TeamQuarterFourWinPercentage  float64
+	// Last Season
+	G_LastSeason_TeamWinsHalfTimeButLoses      float64
+	G_LastSeason_TeamWinsHalfTimeAndWins       float64
+	V_LastSeason_TeamWinsHalfTimeButLoses      float64
+	V_LastSeason_TeamWinsHalfTimeAndWins       float64
+	V_LastSeason_TeamQuarterOneWinPercentage   float64
+	V_LastSeason_TeamQuarterTwoWinPercentage   float64
+	V_LastSeason_TeamQuarterThreeWinPercentage float64
+	V_LastSeason_TeamQuarterFourWinPercentage  float64
+}
+
 type GetTeamVsTeamResponseBody struct {
-	AllTimeTeamWinRate                 float64 // Percentage
-	AllTimeTeamWinner                  string
-	Draws                              int
-	TeamOne                            string
-	TeamOneWins                        int
-	G_TeamOneWinsHalfTimeButLoses      float64 // Versus Any Team Percentage
-	G_TeamOneWinsHalfTimeAndWins       float64 // Versus Any Team Percentage
-	V_TeamOneWinsHalfTimeButLoses      float64 // Versus TeamTwo Percentage
-	V_TeamOneWinsHalfTimeAndWins       float64 // Versus TeamTwo Percentage
-	V_TeamOneQuarterOneWinPercentage   float64
-	V_TeamOneQuarterTwoWinPercentage   float64
-	V_TeamOneQuarterThreeWinPercentage float64
-	V_TeamOneQuarterFourWinPercentage  float64
-	TeamTwo                            string
-	TeamTwoWins                        int
-	G_TeamTwoWinsHalfTimeButLoses      float64 // Versus Any Team Percentage
-	G_TeamTwoWinsHalfTimeAndWins       float64
-	V_TeamTwoWinsHalfTimeButLoses      float64 // Versus TeamTwo Percentage
-	V_TeamTwoWinsHalfTimeAndWins       float64 // Versus TeamTwo Percentage
-	TotalGamesPlayedAgainstEachOther   float64
-	V_TeamTwoQuarterOneWinPercentage   float64
-	V_TeamTwoQuarterTwoWinPercentage   float64
-	V_TeamTwoQuarterThreeWinPercentage float64
-	V_TeamTwoQuarterFourWinPercentage  float64
+	AllTimeTeamWinRate     float64 // Percentage
+	AllTimeTeamWinner      string
+	Draws                  int
+	TeamOne                string
+	TeamOneWins            int
+	TeamOneIndividualStats IndividualTeamStats
+	TeamTwo                string
+	TeamTwoWins            int
+	TeamTwoIndividualStats IndividualTeamStats
 }
 
 func (b TeamHandler) GetTeamVsTeam(w http.ResponseWriter, r *http.Request) {
@@ -103,15 +117,19 @@ func (b TeamHandler) GetTeamVsTeam(w http.ResponseWriter, r *http.Request) {
 	t2WinsHalfButLoses := (float64(len(allTimeTeamTwoWinsSecondQAndLoses)) / float64(totalTeamTwoGamesEver)) * 100
 	t2WinsHalfTimeAndWins := (float64(len(allTimeTeamTwoWinsSecondQAndWins)) / float64(totalTeamTwoGamesEver)) * 100
 
+	teamOneIndividualStats := IndividualTeamStats{}
+	//var teamTwoIndividualStats IndividualTeamStats
+
 	// TEAM VS TEAM
-	responseBody.V_TeamOneWinsHalfTimeAndWins = allTimeTeamVsTeamStats.TotalTeamOneWinsHalfTimeAndWins
-	responseBody.V_TeamOneWinsHalfTimeButLoses = allTimeTeamVsTeamStats.TotalTeamOneWinsHalfTimeButLoses
-	responseBody.G_TeamOneWinsHalfTimeButLoses = t1WinsHalfButLoses
-	responseBody.G_TeamOneWinsHalfTimeAndWins = t1WinsHalfTimeAndWins
-	responseBody.V_TeamOneQuarterOneWinPercentage = allTimeTeamVsTeamStats.TeamOneQuarterOneWinPercent
-	responseBody.V_TeamOneQuarterTwoWinPercentage = allTimeTeamVsTeamStats.TeamOneQuarterTwoWinPercent
-	responseBody.V_TeamOneQuarterThreeWinPercentage = allTimeTeamVsTeamStats.TeamOneQuarterThreeWinPercent
-	responseBody.V_TeamOneQuarterFourWinPercentage = allTimeTeamVsTeamStats.TeamOneQuarterFourWinPercent
+	teamOneIndividualStats.V_AllTime_TeamQuarterOneWinPercentage = allTimeTeamVsTeamStats.TeamOneQuarterOneWinPercent
+	teamOneIndividualStats.V_AllTime_TeamWinsHalfTimeAndWins = allTimeTeamVsTeamStats.TotalTeamOneWinsHalfTimeAndWins
+	teamOneIndividualStats.V_AllTime_TeamWinsHalfTimeAndWins = allTimeTeamVsTeamStats.TotalTeamOneWinsHalfTimeButLoses
+	teamOneIndividualStats.G_AllTime_TeamWinsHalfTimeButLoses = t1WinsHalfButLoses
+	teamOneIndividualStats.G_AllTime_TeamWinsHalfTimeAndWins = t1WinsHalfTimeAndWins
+	teamOneIndividualStats.V_AllTime_TeamQuarterOneWinPercentage = allTimeTeamVsTeamStats.TeamOneQuarterOneWinPercent
+	teamOneIndividualStats.V_AllTime_TeamQuarterTwoWinPercentage = allTimeTeamVsTeamStats.TeamOneQuarterTwoWinPercent
+	teamOneIndividualStats.V_AllTime_TeamQuarterThreeWinPercentage = allTimeTeamVsTeamStats.TeamOneQuarterThreeWinPercent
+	teamOneIndividualStats.V_AllTime_TeamQuarterFourWinPercentage = allTimeTeamVsTeamStats.TeamOneQuarterFourWinPercent
 	responseBody.TeamOneWins = allTimeTeamVsTeamStats.TotalTeamOneWins
 
 	responseBody.G_TeamTwoWinsHalfTimeButLoses = t2WinsHalfButLoses
