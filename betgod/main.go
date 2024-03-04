@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
@@ -37,6 +38,7 @@ func main() {
 
 	// Spin up server
 	http.ListenAndServe(":3000", router)
+	fmt.Printf("\nServer running on http://localhost:%+v", 3000)
 
 	//Disconnect DB
 	defer func(db *sql.DB) {

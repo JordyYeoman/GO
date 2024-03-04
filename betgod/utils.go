@@ -333,6 +333,20 @@ type TeamVSTeamStats struct {
 	TeamTwoQuarterFourWinPercent     float64
 	TotalTeamTwoWinsHalfTimeButLoses float64
 	TotalTeamTwoWinsHalfTimeAndWins  float64
+	TeamLosesHalfTimeAndLoses        float64
+	TeamLosesHalfTimeAndWins         float64
+}
+
+func getAllTimeTeamQuarterStats(teamStats []TeamStatsWithMatchId) GenericTeamStatsAverages {
+	var teamStatsAverages GenericTeamStatsAverages
+
+	for _, team := range teamStats {
+		// Get halves
+		if team.MatchResult == "WIN"
+		// Get quarters
+	}
+
+	return teamStatsAverages
 }
 
 func getAllTimeTeamVSTeamQuarterStats(matchStats []MatchStats) TeamVSTeamStats {
@@ -363,15 +377,6 @@ func getAllTimeTeamVSTeamQuarterStats(matchStats []MatchStats) TeamVSTeamStats {
 		if GetQuarterResult(match.TeamOne, 4) == "WIN" {
 			teamVsTeamStats.TeamOneQuarterFourWinPercent++
 		}
-
-		fmt.Println("")
-		fmt.Println("Quarter 3")
-		fmt.Println(match.TeamTwo.QuarterThreeResult)
-		fmt.Println(match.TeamTwo.QuarterThreeScore)
-		fmt.Println(match.TeamTwo.QuarterThreeData)
-		fmt.Println(GetQuarterResult(match.TeamTwo, 3))
-		fmt.Println(GetQuarterResult(match.TeamTwo, 4))
-		fmt.Println("")
 
 		// TEAM TWO
 		if GetQuarterResult(match.TeamTwo, 1) == "WIN" {
@@ -419,7 +424,33 @@ func getAllTimeTeamVSTeamQuarterStats(matchStats []MatchStats) TeamVSTeamStats {
 	return teamVsTeamStats
 }
 
-func getAllTimeTeamWinsXQuarterAndXOutcome(teamStatsList []TeamStatsWithMatchId, quarter int, quarterResult string, matchResult string) []TeamStatsWithMatchId {
+func getTotalGamesPlayedLastXSeasons(teamStatsList []TeamStatsWithMatchId, totalSeasonsToTally int, currentSeason int) float64 {
+	totalGamesPlayed := 0
+
+	for _, team := range teamStatsList {
+		if team.Season >= currentSeason-totalSeasonsToTally {
+			totalGamesPlayed++
+		}
+	}
+
+	return float64(totalGamesPlayed)
+}
+
+func getXSeasonTeamWinsYQuarterAndZOutcome(teamStatsList []TeamStatsWithMatchId, quarter int, quarterResult string, matchResult string, totalSeasonsToTally int, currentSeason int) float64 {
+	var filteredTeamList []TeamStatsWithMatchId
+
+	for _, team := range teamStatsList {
+		if team.Season >= currentSeason-totalSeasonsToTally {
+			if GetQuarterResult(team, quarter) == quarterResult && team.MatchResult == matchResult {
+				filteredTeamList = append(filteredTeamList, team)
+			}
+		}
+	}
+
+	return float64(len(filteredTeamList))
+}
+
+func getAllTimeTeamWinsXQuarterAndXOutcome(teamStatsList []TeamStatsWithMatchId, quarter int, quarterResult string, matchResult string) float64 {
 	var filteredTeamList []TeamStatsWithMatchId
 
 	for _, team := range teamStatsList {
@@ -428,7 +459,7 @@ func getAllTimeTeamWinsXQuarterAndXOutcome(teamStatsList []TeamStatsWithMatchId,
 		}
 	}
 
-	return filteredTeamList
+	return float64(len(filteredTeamList))
 }
 
 // Return every time teamOne plays teamTwo
@@ -480,7 +511,6 @@ func getTeamVsTeamStats(db *sql.DB, teamOne string, teamTwo string) ([]MatchStat
 		data = append(data, matchData)
 	}
 
-	//fmt.Println(data)
 	return data, nil
 }
 
