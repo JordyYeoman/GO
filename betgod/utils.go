@@ -340,11 +340,57 @@ type TeamVSTeamStats struct {
 func getAllTimeTeamQuarterStats(teamStats []TeamStatsWithMatchId) GenericTeamStatsAverages {
 	var teamStatsAverages GenericTeamStatsAverages
 
+	totalGamesRecorded := 0.0
+
 	for _, team := range teamStats {
-		// Get halves
-		if team.MatchResult == "WIN"
+		totalGamesRecorded++
 		// Get quarters
+		if team.QuarterOneResult == "WIN" {
+			teamStatsAverages.TeamQuarterOneWinPercentage++
+		}
+		if team.QuarterTwoResult == "WIN" {
+			teamStatsAverages.TeamQuarterTwoWinPercentage++
+		}
+		if team.QuarterThreeResult == "WIN" {
+			teamStatsAverages.TeamQuarterThreeWinPercentage++
+		}
+		if team.QuarterFourResult == "WIN" {
+			teamStatsAverages.TeamQuarterFourWinPercentage++
+		}
+
+		// Get halves
+		//
+		// TeamWinsHalfTimeButLoses      float64
+		if team.QuarterTwoResult == "WIN" && team.MatchResult == "LOSS" {
+			teamStatsAverages.TeamWinsHalfTimeButLoses++
+		}
+
+		// TeamWinsHalfTimeAndWins       float64
+		if team.QuarterTwoResult == "WIN" && team.MatchResult == "WIN" {
+			teamStatsAverages.TeamWinsHalfTimeAndWins++
+		}
+
+		// TeamLosesHalfTimeAndLoses     float64
+		if team.QuarterTwoResult == "LOSS" && team.MatchResult == "LOSS" {
+			teamStatsAverages.TeamWinsHalfTimeButLoses++
+		}
+
+		// TeamLosesHalfTimeAndWins      float64
+		if team.QuarterTwoResult == "WIN" && team.MatchResult == "LOSS" {
+			teamStatsAverages.TeamWinsHalfTimeButLoses++
+		}
 	}
+
+	// Halves
+	teamStatsAverages.TeamWinsHalfTimeAndWins = (teamStatsAverages.TeamWinsHalfTimeAndWins / totalGamesRecorded) * 100
+	teamStatsAverages.TeamWinsHalfTimeButLoses = (teamStatsAverages.TeamWinsHalfTimeButLoses / totalGamesRecorded) * 100
+	teamStatsAverages.TeamLosesHalfTimeAndLoses = (teamStatsAverages.TeamLosesHalfTimeAndLoses / totalGamesRecorded) * 100
+	teamStatsAverages.TeamLosesHalfTimeAndWins = (teamStatsAverages.TeamLosesHalfTimeAndWins / totalGamesRecorded) * 100
+	// Qtrs
+	teamStatsAverages.TeamQuarterOneWinPercentage = (teamStatsAverages.TeamQuarterOneWinPercentage / totalGamesRecorded) * 100
+	teamStatsAverages.TeamQuarterTwoWinPercentage = (teamStatsAverages.TeamQuarterTwoWinPercentage / totalGamesRecorded) * 100
+	teamStatsAverages.TeamQuarterThreeWinPercentage = (teamStatsAverages.TeamQuarterThreeWinPercentage / totalGamesRecorded) * 100
+	teamStatsAverages.TeamQuarterFourWinPercentage = (teamStatsAverages.TeamQuarterFourWinPercentage / totalGamesRecorded) * 100
 
 	return teamStatsAverages
 }
