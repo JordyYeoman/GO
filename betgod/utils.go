@@ -337,12 +337,17 @@ type TeamVSTeamStats struct {
 	TeamLosesHalfTimeAndWins         float64
 }
 
-func getAllTimeTeamQuarterStats(teamStats []TeamStatsWithMatchId) GenericTeamStatsAverages {
+func getXTimeTeamQuarterStats(teamStats []TeamStatsWithMatchId, totalSeasons int, currentSeason int) GenericTeamStatsAverages {
 	var teamStatsAverages GenericTeamStatsAverages
 
 	totalGamesRecorded := 0.0
 
 	for _, team := range teamStats {
+		// -1 will include ALL seasons
+		if totalSeasons > 0 && (team.Season < (currentSeason - totalSeasons)) {
+			continue
+		}
+
 		totalGamesRecorded++
 		// Get quarters
 		if team.QuarterOneResult == "WIN" {
@@ -372,12 +377,12 @@ func getAllTimeTeamQuarterStats(teamStats []TeamStatsWithMatchId) GenericTeamSta
 
 		// TeamLosesHalfTimeAndLoses     float64
 		if team.QuarterTwoResult == "LOSS" && team.MatchResult == "LOSS" {
-			teamStatsAverages.TeamWinsHalfTimeButLoses++
+			teamStatsAverages.TeamLosesHalfTimeAndLoses++
 		}
 
 		// TeamLosesHalfTimeAndWins      float64
-		if team.QuarterTwoResult == "WIN" && team.MatchResult == "LOSS" {
-			teamStatsAverages.TeamWinsHalfTimeButLoses++
+		if team.QuarterTwoResult == "LOSS" && team.MatchResult == "WIN" {
+			teamStatsAverages.TeamLosesHalfTimeAndWins++
 		}
 	}
 
