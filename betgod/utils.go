@@ -400,11 +400,21 @@ func getXTimeTeamQuarterStats(teamStats []TeamStatsWithMatchId, totalSeasons int
 	return teamStatsAverages
 }
 
-func getAllTimeTeamVSTeamQuarterStats(matchStats []MatchStats) TeamVSTeamStats {
+func getAllTimeTeamVSTeamQuarterStats(matchStats []MatchStats, totalSeasons int, currentSeason int) TeamVSTeamStats {
 	var teamVsTeamStats TeamVSTeamStats
 
 	for _, match := range matchStats {
+		currSeason, err := strconv.Atoi(match.Season)
+		if err != nil {
+			log.Fatal("Yeah Match stats is cooked!")
+		}
+		// -1 will include ALL seasons
+		if totalSeasons > 0 && (currSeason < (currentSeason - totalSeasons)) {
+			continue
+		}
+
 		teamVsTeamStats.TotalTimesPlayed++
+
 		if match.WinningTeam == match.TeamOne.TeamName {
 			teamVsTeamStats.TotalTeamOneWins++
 		} else if match.WinningTeam == match.TeamTwo.TeamName {
