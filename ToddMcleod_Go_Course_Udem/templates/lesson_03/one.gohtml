@@ -2,7 +2,8 @@
 <html lang="en">
 <body>
 <main>
-    <h1>The meaning of life: {{.}}</h1>
+    {{ $meaningOfLife := .}}
+    <h1>The meaning of life: {{$meaningOfLife}}</h1>
 </main>
 </body>
 </html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+<main>
+{{/*    {{ range $index, $element := .}}*/}}
+{{/*    <li>{{ $index }} - {{ $element }}</li>*/}}
+{{/*    {{ end }}*/}}
+{{/*    <ul>*/}}
+{{/*        <li>Name:{{ .Name }} - Age:{{ .Age }}</li>*/}}
+{{/*    </ul>*/}}
+    <ul>
+    {{ range .People }}
+        <Li>{{ .Name }} - {{ .Age}}</Li>
+    {{ end }}
+    </ul>
+
+    <ul>
+        {{ range .Cars }}
+            <Li>{{ .Brand }} - {{ .Model }} - {{ .Year}}</Li>
+        {{ end }}
+    </ul>
+</main>
+</body>
+</html>
