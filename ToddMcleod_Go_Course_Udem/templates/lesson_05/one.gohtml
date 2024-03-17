@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+<main>
+    <ul>
+        {{ range .People }}
+            <Li>{{ uc .Name }} - {{ .Age}}</Li>
+        {{ end }}
+
+        {{ range .Cars }}
+            <Li>{{ uc .Brand }} - {{ ft .Model }} - {{ .Year}} </Li>
+        {{ end }}
+    </ul>
+</main>
+</body>
+</html>
