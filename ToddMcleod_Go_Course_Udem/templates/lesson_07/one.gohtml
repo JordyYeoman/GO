@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Go Templates - Global Functions</title>
+<body>
+<main>
+    <h1>Page Data</h1>
+    <h4>Count</h4>
+    {{ index .Count 2 }}
+    {{ index .Count 3 }}
+    {{ index .Count 1 }}
+    {{ index .Count 0 }}
+
+    <h4>Game Data</h4>
+    {{ if gt .Game.Score1 .Game.Score2 }}
+        <p>Player 1 winning</p>
+    {{ end }}
+
+    {{ if lt .Game.Score1 .Game.Score2 }}
+        <p>Player 2 winning</p>
+    {{ end }}
+
+    {{ if eq .Game.Score1 .Game.Score2 }}
+        <p>Scores tied</p>
+    {{ end }}
+</main>
+</body>
+</html>
