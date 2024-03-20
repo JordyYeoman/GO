@@ -13,8 +13,8 @@ func init() {
 }
 
 func main() {
-	err := tpl.ExecuteTemplate(os.Stdout, "templates/main.gohtml", nil)
+	err := tpl.ExecuteTemplate(os.Stdout, "main.gohtml", 42)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 }
