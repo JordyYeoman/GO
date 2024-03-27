@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Go Templates - Data and Composition</title>
+<body>
+<main>
+    <h1>Team: {{ .Name }}</h1>
+    {{ range .Players }}
+    {{ if gt .AvgDisposals 20.0 }}
+        <p>Major Ball Winner:</p>
+        <p>Name: {{.Name}}</p>
+        <p>Age: {{.Age}}</p>
+        <p>Average Disposals: {{ double .AvgDisposals | sqr }}</p>
+    {{ else }}
+            <p>Name: {{.Name}}</p>
+            <p>Age: {{.Age}}</p>
+            <p>Average Disposals: {{.AvgDisposals}}</p>
+        {{ end }}
+    {{ end}}
+</main>
+</body>
+</html>
