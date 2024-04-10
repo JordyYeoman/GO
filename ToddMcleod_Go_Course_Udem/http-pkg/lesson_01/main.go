@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"text/template"
 )
 
@@ -21,11 +22,23 @@ func (m hotdog) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Could not parse form: ", err)
 	}
 
-	fmt.Println(r.Form)
+	data := struct {
+		Method        string
+		URL           *url.URL
+		Submissions   map[string][]string
+		Header        http.Header
+		ContentLength int64
+	}{
+		r.Method,
+		r.URL,
+		r.Form,
+		r.Header,
+		r.ContentLength,
+	}
 
-	err = tpl.ExecuteTemplate(w, "index.gohtml", r.Form)
+	err = tpl.ExecuteTemplate(w, "index.gohtml", data)
 	if err != nil {
-		log.Fatal("Unable to execute template.")
+		log.Fatal("Unable to execute template.", err)
 	}
 	fmt.Fprintf(w, "Any code you want in this cheeky bugger")
 }
