@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+<main>
+    {{ if . }}
+        <p><strong>Variable names</strong> (identifiers) and <em>Values</em>:</p>
+            {{ range $key, $value := .}}
+                <p><strong>{{ $key }}</strong></p>
+                <ul>{{ range $value }}<li><em>{{.}}</em></li>{{end}}</ul>
+            {{end}}
+    {{ end }}
+
+    {{/* Form */}}
+        <form action="/" method="post">
+                <input type="text" name="fname" placeholder="first name" autofocus autocomplete="off"/>
+                <input type="text" name="lname" placeholder="last name" autofocus autocomplete="off"/>
+                <input type="submit" name="submit-btn" value="submit da button"/>
+        </form>
+</main>
+</body>
+</html>
