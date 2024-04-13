@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -14,7 +15,7 @@ func getWakeUpMsg() string {
 	t := time.Now()
 	fmt.Printf("Day: %+v, Hour: %+v, Seconds: %+v", t.Day(), t.Hour(), t.Second())
 
-	return ""
+	return "Good morning sir, it is " + strconv.Itoa(t.Hour()) + ":" + strconv.Itoa(t.Minute()) + ":" + strconv.Itoa(t.Second()) + "s"
 }
 
 func main() {
