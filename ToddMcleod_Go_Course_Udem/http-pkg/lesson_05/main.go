@@ -67,7 +67,7 @@ func getCurrentWeather() string {
 	fmt.Println(weather)
 	tempStr := strconv.FormatFloat(weather.Current.TempC, 'f', -1, 64)
 
-	return "The temperature is: " + tempStr + " and " + weather.Current.Condition.Text
+	return "The temperature is " + tempStr + " and " + weather.Current.Condition.Text
 }
 
 func getWakeUpMsg() string {
@@ -87,9 +87,15 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/good-morning", func(w http.ResponseWriter, r *http.Request) {
 		msg := getWakeUpMsg()
 		_, err := w.Write([]byte(msg))
+		if err != nil {
+			log.Fatal("Unable to get a formatted startup message")
+		}
+	})
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		_, err := w.Write([]byte("Server Good!"))
 		if err != nil {
 			log.Fatal("Unable to get a formatted startup message")
 		}
