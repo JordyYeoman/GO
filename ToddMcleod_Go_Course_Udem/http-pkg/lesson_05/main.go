@@ -99,4 +99,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Unable to start server")
 	}
+
+	// Format docs
 }
