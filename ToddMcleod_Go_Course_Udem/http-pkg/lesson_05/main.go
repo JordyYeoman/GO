@@ -100,6 +100,7 @@ func main() {
 			log.Fatal("Unable to get a formatted startup message")
 		}
 	})
+	r.Mount("/bonus-routes", BonusRoutes())
 
 	err = http.ListenAndServe("localhost:8080", r)
 	if err != nil {
