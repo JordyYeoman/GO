@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // redirects
@@ -14,6 +16,8 @@ func main() {
 	http.HandleFunc("/bar", bar)
 	http.HandleFunc("/setCookie", setCookie)
 	http.HandleFunc("/readCookie", readCookie)
+	http.HandleFunc("/createSession", createSession)
+	http.HandleFunc("/expireCookie", expireCookie)
 	http.HandleFunc("/*", wildcard)
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 
@@ -44,6 +48,11 @@ func trackAndSetCookie(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	if err == http.ErrNoCookie {
+		http.SetCookie(w, &http.Cookie{Name: tCookie, Value: "1"})
+		return
+	}
+
 	// update the count
 	if c != nil {
 		newVal, err := strconv.Atoi(c.Value)
@@ -55,11 +64,15 @@ func trackAndSetCookie(w http.ResponseWriter, req *http.Request) {
 		// increase cookie value
 		newVal++
 		http.SetCookie(w, &http.Cookie{Name: tCookie, Value: strconv.Itoa(newVal)})
+		io.WriteString(w, "# of times visiting site: "+strconv.Itoa(newVal))
 		return
 	}
+}
 
-	// Otherwise set a new cookie
-	http.SetCookie(w, &http.Cookie{Name: tCookie, Value: "1"})
+func createSession(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("TIme: ", time.Now().Format(""))
+	http.SetCookie(w, &http.Cookie{Name: "session", Value: "Now dude!"})
+	//fmt.Fprintln(w, "Session started")
 }
 
 func bar(w http.ResponseWriter, req *http.Request) {
@@ -86,4 +99,16 @@ func readCookie(w http.ResponseWriter, req *http.Request) {
 	}
 
 	fmt.Fprintln(w, "Your cookie is: ", c)
+}
+
+func expireCookie(w http.ResponseWriter, req *http.Request) {
+	c, err := req.Cookie("session")
+	if err != nil {
+		http.Redirect(w, req, "/set", http.StatusSeeOther)
+		return
+	}
+
+	c.MaxAge = -1
+	http.SetCookie(w, c)
+	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
