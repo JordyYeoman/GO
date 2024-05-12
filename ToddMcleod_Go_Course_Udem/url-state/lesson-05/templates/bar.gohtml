@@ -1,0 +1,17 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BAR</title>
+</head>
+<body>
+
+<h1>Welcome to the bar sir, what is your drink of choice?</h1>
+
+{{ if .First}}
+    USERNAME: {{.UserName}}
+    FIRST: {{.First}}
+    LAST: {{.Last}}
+    AGE: {{.Age}}
+{{end}}
+</body>
+</html>
