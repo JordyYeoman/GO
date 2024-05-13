@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 )
@@ -37,8 +38,11 @@ func signup(w http.ResponseWriter, req *http.Request) {
 		http.SetCookie(w, c)
 		dbSessions[c.Value] = un
 
+		// generate pw hash
+		bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
+
 		// store user in dbUsers
-		u := User{un, p, f, l, 29}
+		u := User{un, bs, f, l, 29}
 		dbUsers[un] = u
 
 		// redirect

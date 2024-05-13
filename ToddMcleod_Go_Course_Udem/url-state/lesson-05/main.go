@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 	"text/template"
@@ -9,7 +10,7 @@ import (
 
 type User struct {
 	UserName string
-	Password string
+	Password []byte
 	First    string
 	Last     string
 	Age      int
@@ -22,6 +23,10 @@ var dbSessions = map[string]string{} // session ID, user ID
 func init() {
 	fmt.Println("Initializing Templates")
 	tpl = template.Must(template.ParseGlob("templates/*"))
+
+	// Create dummy user
+	bs, _ := bcrypt.GenerateFromPassword([]byte("shakenNotStirred"), bcrypt.MinCost)
+	dbUsers["test@test.com"] = User{"test@test.com", bs, "John", "Doe", 37}
 }
 
 func main() {
@@ -30,6 +35,7 @@ func main() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/bar", bar)
 	http.HandleFunc("/signup", signup)
+	http.HandleFunc("/login", login)
 	http.Handle("/favivon.ico", http.NotFoundHandler())
 	err := http.ListenAndServe("localhost:8080", nil)
 	if err != nil {
@@ -60,4 +66,8 @@ func bar(w http.ResponseWriter, req *http.Request) {
 		log.Fatal("Unable to parse bar.html")
 		return
 	}
+}
+
+func login(w http.ResponseWriter, req *http.Request) {
+
 }
