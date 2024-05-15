@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
@@ -69,5 +70,49 @@ func bar(w http.ResponseWriter, req *http.Request) {
 }
 
 func login(w http.ResponseWriter, req *http.Request) {
+	if alreadyLoggedIn(req) {
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
 
+	var u User
+	// handle login
+	if req.Method == http.MethodPost {
+		un := req.FormValue("username")
+		pw := req.FormValue("password")
+		u, ok := dbUsers[un]
+		if !ok {
+			http.Error(w, "Username and/or password do not match", http.StatusForbidden)
+			return
+		}
+
+		// Is the password correct
+		err := bcrypt.CompareHashAndPassword(u.Password, []byte(pw))
+		if err != nil {
+			http.Error(w, "Username and/or password do not match", http.StatusForbidden)
+			return
+		}
+
+		// create session cookie
+		sID, err := uuid.NewUUID()
+		if err != nil {
+			log.Fatal("Login failed")
+			return
+		}
+		c := &http.Cookie{
+			Name:  "session",
+			Value: sID.String(),
+		}
+
+		http.SetCookie(w, c)
+		dbSessions[c.Value] = un
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
+
+	err := tpl.ExecuteTemplate(w, "login.gohtml", u)
+	if err != nil {
+		log.Fatal("Login failed")
+		return
+	}
 }
