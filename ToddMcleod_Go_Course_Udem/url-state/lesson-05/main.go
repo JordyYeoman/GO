@@ -37,6 +37,7 @@ func main() {
 	http.HandleFunc("/bar", bar)
 	http.HandleFunc("/signup", signup)
 	http.HandleFunc("/login", login)
+	http.HandleFunc("/logout", logout)
 	http.Handle("/favivon.ico", http.NotFoundHandler())
 	err := http.ListenAndServe("localhost:8080", nil)
 	if err != nil {
@@ -67,6 +68,22 @@ func bar(w http.ResponseWriter, req *http.Request) {
 		log.Fatal("Unable to parse bar.html")
 		return
 	}
+}
+
+func logout(w http.ResponseWriter, req *http.Request) {
+	if !alreadyLoggedIn(req) {
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
+
+	c, _ := req.Cookie("session-id")
+	// delete the session
+	delete(dbSessions, c.Value)
+	// remove the cookie
+	c = &http.Cookie{Name: "session-id", Value: "", MaxAge: -1}
+	http.SetCookie(w, c)
+
+	http.Redirect(w, req, "/login", http.StatusSeeOther)
 }
 
 func login(w http.ResponseWriter, req *http.Request) {
@@ -100,7 +117,7 @@ func login(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		c := &http.Cookie{
-			Name:  "session",
+			Name:  "session-id",
 			Value: sID.String(),
 		}
 
