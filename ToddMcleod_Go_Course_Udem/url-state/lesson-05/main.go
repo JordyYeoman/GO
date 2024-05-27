@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"text/template"
+	"time"
 )
 
 type User struct {
@@ -15,11 +16,20 @@ type User struct {
 	First    string
 	Last     string
 	Age      int
+	Role     string
+}
+
+type Session struct {
+	un           string
+	lastActivity time.Time
 }
 
 var tpl *template.Template
-var dbUsers = map[string]User{}      // user ID, user
-var dbSessions = map[string]string{} // session ID, user ID
+var dbUsers = map[string]User{}       // user ID, user
+var dbSessions = map[string]Session{} // session ID, user ID
+var dbSessionsCleaned = time.Time{}
+
+const sessionLength int = 30 // minutes
 
 func init() {
 	fmt.Println("Initializing Templates")
@@ -27,7 +37,7 @@ func init() {
 
 	// Create dummy user
 	bs, _ := bcrypt.GenerateFromPassword([]byte("shakenNotStirred"), bcrypt.MinCost)
-	dbUsers["test@test.com"] = User{"test@test.com", bs, "John", "Doe", 37}
+	dbUsers["test@test.com"] = User{"test@test.com", bs, "John", "Doe", 37, "007"}
 }
 
 func main() {
@@ -63,6 +73,11 @@ func bar(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if u.Role != "007" {
+		http.Error(w, "you must be 007 to enter the bar", http.StatusForbidden)
+		return
+	}
+
 	err := tpl.ExecuteTemplate(w, "bar.gohtml", u)
 	if err != nil {
 		log.Fatal("Unable to parse bar.html")
@@ -82,6 +97,11 @@ func logout(w http.ResponseWriter, req *http.Request) {
 	// remove the cookie
 	c = &http.Cookie{Name: "session-id", Value: "", MaxAge: -1}
 	http.SetCookie(w, c)
+
+	// clean up dbSessions
+	if time.Now().Sub(dbSessionsCleaned) > (time.Second * 30) {
+		go cleanSessions()
+	}
 
 	http.Redirect(w, req, "/login", http.StatusSeeOther)
 }
@@ -120,9 +140,9 @@ func login(w http.ResponseWriter, req *http.Request) {
 			Name:  "session-id",
 			Value: sID.String(),
 		}
-
+		c.MaxAge = sessionLength
 		http.SetCookie(w, c)
-		dbSessions[c.Value] = un
+		dbSessions[c.Value] = Session{un, time.Now()}
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
 	}

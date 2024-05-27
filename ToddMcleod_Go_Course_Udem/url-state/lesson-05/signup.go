@@ -5,6 +5,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
+	"time"
 )
 
 func signup(w http.ResponseWriter, req *http.Request) {
@@ -19,6 +20,7 @@ func signup(w http.ResponseWriter, req *http.Request) {
 		p := req.FormValue("password")
 		f := req.FormValue("firstname")
 		l := req.FormValue("lastname")
+		r := req.FormValue("role")
 
 		// username taken?
 		if _, ok := dbUsers[un]; ok {
@@ -36,13 +38,13 @@ func signup(w http.ResponseWriter, req *http.Request) {
 			Value: sID.String(),
 		}
 		http.SetCookie(w, c)
-		dbSessions[c.Value] = un
+		dbSessions[c.Value] = Session{un, time.Now()}
 
 		// generate pw hash
 		bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
 
 		// store user in dbUsers
-		u := User{un, bs, f, l, 29}
+		u := User{un, bs, f, l, 29, r}
 		dbUsers[un] = u
 
 		// redirect
