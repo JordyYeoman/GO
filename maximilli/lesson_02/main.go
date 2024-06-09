@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 func main() {
 	http.HandleFunc("/", index)
+	fmt.Println("Server running...")
 	err := http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Fatal("Error occurred: ", err)
