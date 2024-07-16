@@ -1,0 +1,25 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+</head>
+<body>
+<form method="post">
+    <input type="email" name="username" placeholder="User Name"><br>
+    <input type="text" name="firstname" placeholder="First Name"><br>
+    <input type="text" name="lastname" placeholder="Last Name"><br>
+    <input type="submit">
+</form>
+
+{{ if .First}}
+    USERNAME: {{.UserName}}
+    FIRST: {{.First}}
+    LAST: {{.Last}}
+    AGE: {{.Age}}
+{{end}}
+<h2>Go to <a href="/bar">the bar</a></h2>
+<h2>Join the party! -> <a href="/signup">Sign Up</a></h2>
+<h2>Already partying -> <a href="/login">Login</a></h2>
+<h2>Enough partytime -> <a href="/logout">Log out</a></h2>
+</body>
+</html>

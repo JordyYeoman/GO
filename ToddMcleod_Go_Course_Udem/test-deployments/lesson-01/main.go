@@ -49,9 +49,9 @@ func main() {
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/logout", logout)
 	http.Handle("/favivon.ico", http.NotFoundHandler())
-	err := http.ListenAndServe(":80", nil)
+	err := http.ListenAndServe("localhost:8080", nil)
 	if err != nil {
-		log.Fatal("Unable to start server", err)
+		log.Fatal("Unable to start server")
 		return
 	}
 }

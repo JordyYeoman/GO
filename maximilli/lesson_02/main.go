@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/go-chi/chi"
 	"io"
 	"log"
 	"net/http"
@@ -23,4 +24,12 @@ func index(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Error occurred: ", writeString)
 		return
 	}
+
+	host := "localhost:3000"
+	router := chi.NewRouter()
+
+	fmt.Printf("Server running on http://%s\n", host)
+
+	// Start server
+	err = http.ListenAndServe(host, router)
 }
