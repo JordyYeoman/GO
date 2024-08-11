@@ -24,3 +24,5 @@ go.work
 ./db-data
 */vendor/*
 /vendor
+
+.env
