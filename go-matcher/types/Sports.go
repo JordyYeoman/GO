@@ -2,6 +2,9 @@ package types
 
 import "time"
 
+// SingleTon
+var ErrConversionRate = 717172.1234
+
 type SportsOddsPayload struct {
 	Id           string                `json:"id"`
 	SportKey     string                `json:"sport_key"`
@@ -22,8 +25,20 @@ type SportsOddsBookmaker struct {
 type SportsOddsMarket struct {
 	Key        string    `json:"key"`
 	LastUpdate time.Time `json:"last_update"`
-	Outcomes   []struct {
-		Name  string  `json:"name"`
-		Price float64 `json:"price"`
-	} `json:"outcomes"`
+	Outcomes   []Outcome `json:"outcomes"`
+}
+
+type Outcome struct {
+	Name  string  `json:"name"`
+	Price float64 `json:"price"`
+}
+
+type BestOutcome struct {
+	Bookmaker      SportsOddsBookmaker
+	Betfair        SportsOddsMarket
+	BookieWins     float64
+	BetfairWins    float64
+	ConversionRate float64
+	Outcome        Outcome
+	Probability    float64
 }

@@ -37,8 +37,8 @@ func FetchSportsOdds(key string, market string) ([]types.SportsOddsPayload, erro
 		return nil, err
 	}
 
-	fmt.Println("Response Status:", resp.Status)
-	fmt.Println("Response Body:", string(body))
+	//fmt.Println("Response Status:", resp.Status)
+	//fmt.Println("Response Body:", string(body))
 
 	var jsonPayload []types.SportsOddsPayload
 	err = json.Unmarshal(body, &jsonPayload)
