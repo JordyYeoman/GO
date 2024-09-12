@@ -23,7 +23,7 @@ func main() {
 	isFirst := true
 	absoluteBestOutcome := types.BestOutcome{}
 
-	// Do payload comparison
+	// Loop over each sport event in the payload
 	for _, value := range payload {
 		var betfairMarketsLayOdds types.SportsOddsMarket
 
@@ -38,7 +38,7 @@ func main() {
 			}
 		}
 
-		// Compare Lay odds
+		// Match up odds from Bookie and Betfair
 		for _, bookmaker := range value.Bookmakers {
 			bestOutcome, err := handleCheck(betfairMarketsLayOdds, bookmaker)
 			if err != nil {
@@ -51,35 +51,35 @@ func main() {
 
 			bestOutcomes = append(bestOutcomes, bestOutcome)
 		}
+	}
 
-		for _, outcome := range bestOutcomes {
-			fmt.Println("Outcome: ", outcome)
-			if isFirst {
-				fmt.Println("IS FIRST!!")
-				absoluteBestOutcome = types.BestOutcome{
-					Bookmaker:      outcome.Bookmaker,
-					Betfair:        outcome.Betfair,
-					BookieWins:     outcome.BookieWins,
-					BetfairWins:    outcome.BetfairWins,
-					ConversionRate: outcome.ConversionRate,
-					Outcome:        outcome.Outcome,
-					Probability:    outcome.Probability,
-				}
-				isFirst = false
-				continue
+	for _, outcome := range bestOutcomes {
+		fmt.Println("Outcome: ", outcome)
+		if isFirst {
+			fmt.Println("IS FIRST!!")
+			absoluteBestOutcome = types.BestOutcome{
+				Bookmaker:      outcome.Bookmaker,
+				Betfair:        outcome.Betfair,
+				BookieWins:     outcome.BookieWins,
+				BetfairWins:    outcome.BetfairWins,
+				ConversionRate: outcome.ConversionRate,
+				Outcome:        outcome.Outcome,
+				Probability:    outcome.Probability,
 			}
+			isFirst = false
+			continue
+		}
 
-			// Check using absolute 0
-			if math.Abs(outcome.BookieWins) < math.Abs(absoluteBestOutcome.BookieWins) {
-				absoluteBestOutcome = types.BestOutcome{
-					Bookmaker:      outcome.Bookmaker,
-					Betfair:        outcome.Betfair,
-					BookieWins:     outcome.BookieWins,
-					BetfairWins:    outcome.BetfairWins,
-					ConversionRate: outcome.ConversionRate,
-					Outcome:        outcome.Outcome,
-					Probability:    outcome.Probability,
-				}
+		// Check using absolute 0
+		if math.Abs(outcome.BookieWins) < math.Abs(absoluteBestOutcome.BookieWins) {
+			absoluteBestOutcome = types.BestOutcome{
+				Bookmaker:      outcome.Bookmaker,
+				Betfair:        outcome.Betfair,
+				BookieWins:     outcome.BookieWins,
+				BetfairWins:    outcome.BetfairWins,
+				ConversionRate: outcome.ConversionRate,
+				Outcome:        outcome.Outcome,
+				Probability:    outcome.Probability,
 			}
 		}
 	}
@@ -95,50 +95,51 @@ func main() {
 }
 
 func handleCheck(betfairMarketsLayOdds types.SportsOddsMarket, bookmaker types.SportsOddsBookmaker) (types.BestOutcome, error) {
-	stake := 25.0 // default stake val
+	bookieStake := 25.0 // default stake val
+	//betfairStake := 20
+	//maxStakeDiff := 20 // Max difference
 	isFirst := true
 	bestOutcome := types.BestOutcome{}
 	betfairCommission := 0.05
-	bookies := strings.Split(config.Envs.OddsApiBookies, ",")
-	minDifference := 4.5
+	bookies := strings.Split(config.Envs.OddsApiBookies, ",") // Extracts a slice of strings representing each bookie.
 
+	// If bookie doesn't exist
 	if !slices.Contains(bookies, bookmaker.Key) {
 		return types.BestOutcome{
 			ConversionRate: types.ErrConversionRate,
 		}, nil
 	}
 
+	// Loop over each market for the bookie
 	for _, market := range bookmaker.Markets {
+		// Loop over each outcome (Win price team 1, Draw, Win Price Team 2)
 		for _, outcome := range market.Outcomes {
-			// For each outcome, find the equivalent
+			// For each outcome, find the equivalent odds outcome on Betfair
+			// TODO: Calculate odds
 			for _, betfairLayOddsOutcomes := range betfairMarketsLayOdds.Outcomes {
+				// Matching outcome name means we can use as a comparison.
 				if betfairLayOddsOutcomes.Name == outcome.Name {
-					// Matching name outcomes from betfair and bookie
 					backOdds := outcome.Price
 					layOdds := betfairLayOddsOutcomes.Price
-					risk := layOdds * stake
+					risk := layOdds * bookieStake
 					// This is lay odds calculation, hence why the math looks a little strange compared to normal bet profit calculation.
 					// Since we are just making stake amount - commission.
-					profit := stake - (stake * betfairCommission)
+					profit := bookieStake - (bookieStake * betfairCommission)
 
 					conversionRate := 100 - (backOdds/layOdds)*profit
 
 					// If the lay bet fails:
-					bookieWins := ((stake * backOdds) - stake) - risk
+					bookieWins := ((bookieStake * backOdds) - bookieStake) - risk
 					// If the lay bet wins:
-					betfairWins := profit - stake // subtract the loss from bookie stake
-					// Difference between odds
-					diff := layOdds - backOdds
-					isDiffHighEnough := diff > minDifference
+					betfairWins := profit - bookieStake // subtract the loss from bookie stake
 
-					// Filter out favourites (not perfect way)
-					if backOdds < 5 {
+					// Filter out favourites (not perfect way), OR matches with close odds
+					if backOdds < 5 || (layOdds-backOdds) > 5 {
 						continue
 					}
 
-					// Probability of outcome
+					// Filter out events that are likely to succeed.
 					probabilityOfOutcome := (1 / backOdds) * 100
-
 					if probabilityOfOutcome > 20 {
 						continue
 					}
@@ -172,19 +173,14 @@ func handleCheck(betfairMarketsLayOdds types.SportsOddsMarket, bookmaker types.S
 						continue
 					}
 
-					//fmt.Println("=========== T ++++++++++++")
-					//fmt.Println(math.Abs(bookieWins))
-					//fmt.Println(bookieWins)
-					//fmt.Println(math.Abs(bestOutcome.BookieWins))
-					//fmt.Println(bestOutcome.BookieWins)
-
-					if math.Abs(bookieWins) < math.Abs(bestOutcome.BookieWins) && isDiffHighEnough {
+					if math.Abs(bookieWins) < math.Abs(bestOutcome.BookieWins) {
 						bestOutcome = types.BestOutcome{
 							Bookmaker:      bookmaker,
 							BookieWins:     bookieWins,
 							BetfairWins:    betfairWins,
 							ConversionRate: conversionRate,
 							Outcome:        outcome,
+							Probability:    probabilityOfOutcome,
 						}
 					}
 				}
@@ -192,14 +188,12 @@ func handleCheck(betfairMarketsLayOdds types.SportsOddsMarket, bookmaker types.S
 		}
 	}
 
+	// If both are still set to 0, we can assume a failure has occurred somewhere.
 	if bestOutcome.BetfairWins == 0 && bestOutcome.BookieWins == 0 {
 		return types.BestOutcome{
 			ConversionRate: types.ErrConversionRate,
 		}, nil
 	}
 
-	//fmt.Println("Best Outcome: ", bestOutcome)
-	//fmt.Println("Best Bookmaker: ", bestOutcome.Bookmaker)
-	//fmt.Println("Best: ", bestOutcome.Outcome)
 	return bestOutcome, nil
 }
