@@ -3,3 +3,6 @@ build:
 
 run: build
 	@./bin/go-matcher
+
+test-betting:
+	@go test -v ./services/betting
