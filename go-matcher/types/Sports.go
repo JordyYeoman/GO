@@ -34,11 +34,14 @@ type Outcome struct {
 }
 
 type BestOutcome struct {
-	Bookmaker      SportsOddsBookmaker
-	Betfair        SportsOddsMarket
-	BookieWins     float64
-	BetfairWins    float64
-	ConversionRate float64
-	Outcome        Outcome
-	Probability    float64
+	Bookmaker         SportsOddsBookmaker
+	Betfair           SportsOddsMarket
+	BookieWins        float64
+	BetfairWins       float64
+	ConversionRate    float64
+	Outcome           Outcome
+	Probability       float64
+	BestBackStakeSize float64
+	BestLayStakeSize  float64
+	NetOutcome        float64
 }
