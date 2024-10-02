@@ -15,7 +15,12 @@ func main() {
 	}
 
 	cards2, _ := getSavedDeckFromFile("my_cards")
-	fmt.Println(cards2)
+	//fmt.Println(cards2)
+
+	err = cards2.shuffle()
+	if err != nil {
+		log.Fatal("unable to shuffle deck")
+	}
 
 	//playerHand, remainingDeck := cards.deal(5)
 
@@ -23,5 +28,5 @@ func main() {
 	//remainingDeck.logAllCards()
 
 	// Call our receiver function on the 'deck' type.
-	//cards.logAllCards()
+	cards2.logAllCards()
 }
