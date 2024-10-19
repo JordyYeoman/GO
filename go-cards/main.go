@@ -33,4 +33,7 @@ func main() {
 	// Test method
 	numbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	IsEvenOrOdd(numbers)
+
+	// Basic person struct manipulation
+	DoStuff()
 }
